@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BodegaSmart - Sistema Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal.active { display: flex; }
+        .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important; }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="min-h-screen flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 hidden flex-col border-r border-slate-800">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="package" class="text-blue-500"></i> BodegaSmart
+                </h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">Logística e Inventario</p>
+            </div>
+            <nav class="flex-1 px-4 space-y-2">
+                <button onclick="window.switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button onclick="window.switchTab('inventory')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="inventory">
+                    <i data-lucide="list" class="w-4 h-4"></i> Inventario
+                </button>
+                <button onclick="window.switchTab('loans')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="loans">
+                    <i data-lucide="hand-metal" class="w-4 h-4"></i> Préstamos
+                </button>
+            </nav>
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center gap-3 text-sm mb-4 p-2 bg-slate-800/50 rounded-xl">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-xs" id="user-avatar">?</div>
+                    <div class="overflow-hidden">
+                        <p class="font-bold truncate text-xs text-white" id="display-user-role">Cargando...</p>
+                        <p class="text-[9px] text-green-400 font-bold uppercase tracking-tighter">Sesión Activa</p>
+                    </div>
+                </div>
+                <button onclick="window.logout()" class="w-full text-left text-red-400 flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:bg-red-900/20 transition font-bold">
+                    <i data-lucide="log-out" class="w-3 h-3"></i> CERRAR SESIÓN
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <!-- Header Móvil -->
+            <header id="mobile-header" class="hidden bg-slate-900 text-white p-4 justify-between items-center md:hidden">
+                <h1 class="text-xl font-bold flex items-center gap-2"><i data-lucide="package" class="text-blue-500"></i> BodegaSmart</h1>
+                <button onclick="window.toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
+            </header>
+
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8">
+                <!-- Pantalla de Login -->
+                <section id="login-view" class="min-h-[80vh] flex items-center justify-center">
+                    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100">
+                        <div class="flex flex-col items-center mb-10 text-center">
+                            <div class="p-6 bg-slate-900 text-white rounded-3xl mb-4 shadow-xl">
+                                <i data-lucide="shield-check" class="w-10 h-10 text-blue-500"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-800">Acceso al Sistema</h2>
+                            <p class="text-slate-500 mt-1" id="login-status">Sincronizando con la nube...</p>
+                        </div>
+                        <div class="space-y-4">
+                            <button onclick="window.login('admin')" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition flex items-center justify-center gap-3 shadow-xl">
+                                <i data-lucide="shield" class="w-5 h-5 text-blue-500"></i> Perfil Administrador
+                            </button>
+                            <button onclick="window.login('staff')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:border-blue-500 hover:text-blue-600 transition flex items-center justify-center gap-3">
+                                <i data-lucide="user" class="w-5 h-5"></i> Perfil Encargado
+                            </button>
+                        </div>
+                        <div id="local-error-box" class="hidden mt-8 p-5 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs">
+                            <p class="font-black mb-1 flex items-center gap-2"><i data-lucide="alert-octagon" class="w-4 h-4"></i> ERROR DE PROTOCOLO LOCAL</p>
+                            Firebase requiere un servidor <b>HTTP/HTTPS</b>. No funcionará si abres el archivo directamente desde tu carpeta. Usa Live Server o la Vista Previa del chat.
+                        </div>
+                    </div>
+                </section>
+
+                <div id="auth-content" class="hidden">
+                    <!-- Dashboard -->
+                    <section id="tab-dashboard" class="tab-content active space-y-6">
+                        <h2 class="text-3xl font-black text-slate-800">Dashboard</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Préstamo</p>
+                                <h3 class="text-5xl font-black text-slate-800 mt-2" id="stat-active-loans">0</h3>
+                            </div>
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Retornos Hoy</p>
+                                <h3 class="text-5xl font-black text-slate-800 mt-2" id="stat-returns-today">0</h3>
+                            </div>
+                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Equipos de Baja</p>
+                                <h3 class="text-5xl font-black text-red-600 mt-2" id="stat-bad-stock">0</h3>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Inventory -->
+                    <section id="tab-inventory" class="tab-content space-y-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                            <h2 class="text-3xl font-black text-slate-800">Inventario Central</h2>
+                            <div class="flex gap-2">
+                                <button id="admin-add-btn" onclick="window.openModal('modal-product')" class="hidden bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100">
+                                    <i data-lucide="plus" class="w-5 h-5"></i> NUEVO EQUIPO
+                                </button>
+                                <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden bg-slate-100 text-slate-700 px-8 py-3 rounded-2xl font-bold hover:bg-slate-200 transition">
+                                    IMPORTAR CSV
+                                </button>
+                                <input type="file" id="csv-import" class="hidden" accept=".csv" onchange="window.handleCSVImport(event)">
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input type="text" id="search-inventory" placeholder="Filtrar por nombre o código..." class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-4 focus:ring-blue-50 font-medium transition-all">
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                                        <tr>
+                                            <th class="px-6 py-4">Equipo</th>
+                                            <th class="px-6 py-4">Código</th>
+                                            <th class="px-6 py-4 text-center">Total</th>
+                                            <th class="px-6 py-4 text-center bg-blue-50/50">Libres</th>
+                                            <th class="px-6 py-4">Estados</th>
+                                            <th class="px-6 py-4 text-right">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventory-table" class="divide-y divide-slate-50"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Loans -->
+                    <section id="tab-loans" class="tab-content space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-3xl font-black text-slate-800">Préstamos Activos</h2>
+                            <button onclick="window.openLoanModal()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold">NUEVA SALIDA</button>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                                        <tr>
+                                            <th class="px-6 py-4">Equipo</th>
+                                            <th class="px-6 py-4">Solicitante</th>
+                                            <th class="px-6 py-4">Salida</th>
+                                            <th class="px-6 py-4">Retorno</th>
+                                            <th class="px-6 py-4 text-right">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="loans-table" class="divide-y divide-slate-50"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="modal-product" class="modal p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-pop">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-black text-slate-800">Ficha de Equipo</h3>
+                <button onclick="window.closeModal('modal-product')" class="p-2 hover:bg-slate-200 rounded-lg"><i data-lucide="x"></i></button>
+            </div>
+            <form id="product-form" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-5 max-h-[75vh] overflow-y-auto">
+                <input type="hidden" id="edit-product-id">
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Nombre</label>
+                    <input type="text" id="p-name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Código</label>
+                    <input type="text" id="p-code" placeholder="BS-XXXXX" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Ubicación</label>
+                    <input type="text" id="p-location" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Especificaciones</label>
+                    <textarea id="p-specs" rows="2" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Cantidad Total de Unidades</label>
+                    <input type="number" id="p-total" min="1" required class="w-full p-4 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none font-black text-2xl text-center focus:border-blue-500" oninput="window.validateStockMath()">
+                </div>
+                
+                <div class="bg-blue-50/50 p-6 rounded-3xl md:col-span-2 space-y-4 border border-blue-100">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-blue-800 uppercase">Desglose Físico</span>
+                        <span id="stock-warning" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-green-100 text-green-600 uppercase">Sincronizado</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <label class="text-[9px] font-black text-green-600 block mb-1">Buenos</label>
+                            <input type="number" id="p-good" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-green-500" oninput="window.validateStockMath()">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[9px] font-black text-amber-600 block mb-1">Reparables</label>
+                            <input type="number" id="p-repair" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-amber-500" oninput="window.validateStockMath()">
+                        </div>
+                        <div class="text-center">
+                            <label class="text-[9px] font-black text-red-600 block mb-1">Malos</label>
+                            <input type="number" id="p-bad" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-red-500" oninput="window.validateStockMath()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 pt-4 flex gap-3">
+                    <button type="submit" id="save-product-btn" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">Guardar Equipo</button>
+                    <button type="button" onclick="window.closeModal('modal-product')" class="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold">Cerrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Préstamo -->
+    <div id="modal-loan" class="modal p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-pop">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-900 text-white">
+                <h3 class="text-xl font-black">Registrar Salida</h3>
+                <button onclick="window.closeModal('modal-loan')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="loan-form" class="p-8 space-y-5">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Equipo a prestar</label>
+                    <select id="l-product" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase">Cantidad</label>
+                        <input type="number" id="l-qty" min="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase">RUT Responsable</label>
+                        <input type="text" id="l-rut" placeholder="12.345.678-9" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Nombre Completo</label>
+                    <input type="text" id="l-name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-100">Emitir Salida</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 right-8 z-[150] transform translate-y-20 transition-all duration-300 opacity-0 pointer-events-none">
+        <div id="toast-content" class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
+            <span id="toast-message" class="font-bold text-sm"></span>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyY6-4Qc8Yhvpv0JV0X46jVIHSfOPQ44c",
+            authDomain: "bodegasmart-sistema.firebaseapp.com",
+            projectId: "bodegasmart-sistema",
+            storageBucket: "bodegasmart-sistema.firebasestorage.app",
+            messagingSenderId: "637119460023",
+            appId: "1:637119460023:web:86811fde9a937894c5d332"
+        };
+
+        const appId = 'bodegasmart-sistema';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let products = [];
+        let loans = [];
+        let userRole = null;
+
+        // --- FUNCIONES CORE ---
+        window.switchTab = (id) => {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('tab-' + id);
+            if (target) target.classList.add('active');
+            
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white');
+                if(b.dataset.tab === id) b.classList.add('bg-slate-800', 'text-white');
+            });
+        };
+
+        window.openModal = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+        };
+        
+        window.closeModal = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+            if(id === 'modal-product') {
+                const form = document.getElementById('product-form');
+                if (form) form.reset();
+                const editId = document.getElementById('edit-product-id');
+                if (editId) editId.value = '';
+                window.validateStockMath();
+            }
+        };
+
+        window.login = async (role) => {
+            if (window.location.protocol === 'file:') {
+                const errBox = document.getElementById('local-error-box');
+                if (errBox) errBox.classList.remove('hidden');
+                return;
+            }
+            localStorage.setItem('bodega_role', role);
+            const status = document.getElementById('login-status');
+            if (status) status.textContent = "Autenticando...";
+            try {
+                await signInAnonymously(auth);
+            } catch(e) { 
+                console.error("Auth Failed:", e);
+                showToast("Error de conexión con Firebase. ¿Internet?", "error");
+            }
+        };
+
+        window.logout = () => {
+            auth.signOut();
+            localStorage.removeItem('bodega_role');
+            location.reload();
+        };
+
+        window.validateStockMath = () => {
+            const totalEl = document.getElementById('p-total');
+            const goodEl = document.getElementById('p-good');
+            const repairEl = document.getElementById('p-repair');
+            const badEl = document.getElementById('p-bad');
+            
+            if (!totalEl || !goodEl || !repairEl || !badEl) return;
+
+            const total = parseInt(totalEl.value) || 0;
+            const b = parseInt(goodEl.value) || 0;
+            const r = parseInt(repairEl.value) || 0;
+            const m = parseInt(badEl.value) || 0;
+            
+            const currentSum = b + r + m;
+            const diff = total - currentSum;
+            const warn = document.getElementById('stock-warning');
+            const btn = document.getElementById('save-product-btn');
+            const fields = [goodEl, repairEl, badEl];
+
+            if (diff === 0 && total > 0) {
+                if (warn) {
+                    warn.textContent = "Sincronizado";
+                    warn.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-green-100 text-green-600 uppercase";
+                }
+                if (btn) btn.disabled = false;
+                fields.forEach(f => f.classList.remove('input-error'));
+            } else {
+                if (warn) {
+                    warn.textContent = diff > 0 ? `Faltan: ${diff}` : `Exceso: ${Math.abs(diff)}`;
+                    warn.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-red-100 text-red-600 uppercase";
+                }
+                if (btn) btn.disabled = true;
+                fields.forEach(f => f.classList.add('input-error'));
+            }
+        };
+
+        // --- AUTH OBSERVER ---
+        onAuthStateChanged(auth, (user) => {
+            const stored = localStorage.getItem('bodega_role');
+            if (user && stored) renderApp(stored);
+            else {
+                const loginView = document.getElementById('login-view');
+                if (loginView) loginView.classList.remove('hidden');
+                if (window.location.protocol === 'file:') {
+                    const errBox = document.getElementById('local-error-box');
+                    if (errBox) errBox.classList.remove('hidden');
+                }
+            }
+        });
+
+        function renderApp(role) {
+            userRole = role;
+            const loginView = document.getElementById('login-view');
+            const sidebar = document.getElementById('sidebar');
+            const authContent = document.getElementById('auth-content');
+            const mobileHeader = document.getElementById('mobile-header');
+            const displayRole = document.getElementById('display-user-role');
+            const avatar = document.getElementById('user-avatar');
+
+            if (loginView) loginView.classList.add('hidden');
+            if (sidebar) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('flex');
+            }
+            if (authContent) authContent.classList.remove('hidden');
+            if (mobileHeader) {
+                mobileHeader.classList.remove('hidden');
+                mobileHeader.classList.add('flex');
+            }
+            if (displayRole) displayRole.textContent = userRole === 'admin' ? 'Administrador' : 'Encargado';
+            if (avatar) avatar.textContent = userRole === 'admin' ? 'AD' : 'EB';
+
+            if (userRole === 'admin') {
+                const addBtn = document.getElementById('admin-add-btn');
+                const importBtn = document.getElementById('admin-import-btn');
+                if (addBtn) addBtn.classList.remove('hidden');
+                if (importBtn) importBtn.classList.remove('hidden');
+            }
+
+            // Suscripciones Firebase
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
+                products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderInventory(); updateStats();
+            });
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), (snap) => {
+                loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderLoans(); updateStats();
+            });
+
+            lucide.createIcons();
+        }
+
+        // --- ACCIONES FIRESTORE ---
+        const productForm = document.getElementById('product-form');
+        if (productForm) {
+            productForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const editIdInput = document.getElementById('edit-product-id');
+                const id = editIdInput ? editIdInput.value : null;
+                const good = parseInt(document.getElementById('p-good').value);
+                
+                const data = {
+                    name: document.getElementById('p-name').value,
+                    code: document.getElementById('p-code').value || 'BS-' + Math.floor(10000 + Math.random() * 90000),
+                    location: document.getElementById('p-location').value,
+                    specs: document.getElementById('p-specs').value,
+                    total: parseInt(document.getElementById('p-total').value),
+                    good: good,
+                    repair: parseInt(document.getElementById('p-repair').value),
+                    bad: parseInt(document.getElementById('p-bad').value),
+                    available: good, 
+                    updatedAt: new Date().toISOString()
+                };
+
+                try {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+                    if (id) await updateDoc(doc(colRef, id), data);
+                    else await addDoc(colRef, data);
+                    window.closeModal('modal-product');
+                    showToast("Base de datos actualizada");
+                } catch(err) { showToast("Error Firestore: Revisa las Reglas", "error"); }
+            };
+        }
+
+        window.handleCSVImport = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                const text = ev.target.result;
+                // Dividir por cualquier tipo de salto de línea (\n, \r\n, \r)
+                const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+                
+                if (lines.length <= 1) {
+                    showToast("El archivo parece estar vacío o mal formado", "error");
+                    return;
+                }
+
+                // Detectar delimitador (coma o punto y coma)
+                const header = lines[0];
+                const delimiter = header.includes(";") ? ";" : ",";
+                
+                const dataLines = lines.slice(1);
+                let count = 0;
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+                
+                for (let line of dataLines) {
+                    const parts = line.split(delimiter).map(x => x?.trim());
+                    // Necesitamos al menos el nombre (primera columna)
+                    const n = parts[0];
+                    if (!n) continue;
+
+                    try {
+                        await addDoc(colRef, {
+                            name: n,
+                            code: parts[1] || 'BS-'+Math.floor(Math.random()*99999),
+                            specs: parts[2] || '',
+                            location: parts[3] || 'Bodega',
+                            total: parseInt(parts[4]) || 0,
+                            good: parseInt(parts[5]) || 0,
+                            repair: parseInt(parts[6]) || 0,
+                            bad: parseInt(parts[7]) || 0,
+                            available: parseInt(parts[5]) || 0,
+                            updatedAt: new Date().toISOString()
+                        });
+                        count++;
+                    } catch(err) { 
+                        console.error("Fallo una fila", err); 
+                    }
+                }
+                
+                if (count === 0) {
+                    showToast("No se pudieron procesar filas. Revisa el formato.", "error");
+                } else {
+                    showToast(`Éxito: Se importaron ${count} registros`);
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        window.editProduct = (id) => {
+            const p = products.find(x => x.id === id);
+            if (!p) return;
+            const editId = document.getElementById('edit-product-id');
+            const name = document.getElementById('p-name');
+            const code = document.getElementById('p-code');
+            const loc = document.getElementById('p-location');
+            const specs = document.getElementById('p-specs');
+            const total = document.getElementById('p-total');
+            const good = document.getElementById('p-good');
+            const repair = document.getElementById('p-repair');
+            const bad = document.getElementById('p-bad');
+
+            if (editId) editId.value = p.id;
+            if (name) name.value = p.name;
+            if (code) code.value = p.code;
+            if (loc) loc.value = p.location;
+            if (specs) specs.value = p.specs || '';
+            if (total) total.value = p.total;
+            if (good) good.value = p.good;
+            if (repair) repair.value = p.repair;
+            if (bad) bad.value = p.bad;
+
+            window.validateStockMath();
+            window.openModal('modal-product');
+        };
+
+        window.deleteProduct = async (id) => {
+            if (!confirm("¿Deseas eliminar este registro?")) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id));
+                showToast("Equipo eliminado");
+            } catch(e) { showToast("Sin permisos para borrar", "error"); }
+        };
+
+        window.openLoanModal = () => {
+            const select = document.getElementById('l-product');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Elige Equipo --</option>';
+            products.filter(p => p.good > 0).forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} (${p.good} en stock)</option>`;
+            });
+            window.openModal('modal-loan');
+        };
+
+        const loanForm = document.getElementById('loan-form');
+        if (loanForm) {
+            loanForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const pid = document.getElementById('l-product').value;
+                const qty = parseInt(document.getElementById('l-qty').value);
+                const p = products.find(x => x.id === pid);
+
+                if (!p || qty > p.good) return showToast("Stock insuficiente", "error");
+
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), {
+                        productId: pid, productName: p.name,
+                        borrowerName: document.getElementById('l-name').value,
+                        borrowerRUT: document.getElementById('l-rut').value,
+                        qty, isReturned: false, loanDate: new Date().toISOString()
+                    });
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', pid), {
+                        good: p.good - qty
+                    });
+
+                    window.closeModal('modal-loan');
+                    showToast("Salida emitida");
+                } catch(err) { showToast("Error en préstamo", "error"); }
+            };
+        }
+
+        window.processReturn = async (id) => {
+            const l = loans.find(x => x.id === id);
+            if (!l) return;
+            const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
+            const pSnap = await getDoc(pRef);
+            if (!pSnap.exists()) return;
+            const p = pSnap.data();
+
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', id), {
+                    isReturned: true, returnDate: new Date().toISOString()
+                });
+                await updateDoc(pRef, { good: p.good + l.qty });
+                showToast("Equipo devuelto a bodega");
+            } catch(err) { showToast("Error al procesar retorno", "error"); }
+        };
+
+        // --- RENDERIZADO UI ---
+        function renderInventory() {
+            const tbody = document.getElementById('inventory-table');
+            if (!tbody) return;
+            const searchInput = document.getElementById('search-inventory');
+            const search = searchInput ? searchInput.value.toLowerCase() : "";
+            const items = products.filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search));
+            
+            tbody.innerHTML = items.map(p => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="px-6 py-5">
+                        <div class="font-black text-slate-800">${p.name}</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-bold">${p.location}</div>
+                    </td>
+                    <td class="px-6 py-5 font-mono text-xs font-bold text-slate-500">${p.code}</td>
+                    <td class="px-6 py-5 text-center font-black text-slate-300">${p.total}</td>
+                    <td class="px-6 py-5 text-center bg-blue-50/20">
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.good > 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}">${p.good}</span>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex gap-1 text-[9px] font-black">
+                            <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded">B:${p.good}</span>
+                            <span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded">R:${p.repair}</span>
+                            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded">M:${p.bad}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 text-right">
+                        <div class="flex justify-end gap-2">
+                        ${userRole === 'admin' ? `
+                            <button onclick="window.editProduct('${p.id}')" class="text-blue-500 p-2 hover:bg-blue-50 rounded-lg transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="window.deleteProduct('${p.id}')" class="text-red-400 p-2 hover:bg-red-50 rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ` : '<i data-lucide="lock" class="w-4 h-4 text-slate-200"></i>'}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderLoans() {
+            const tbody = document.getElementById('loans-table');
+            if (!tbody) return;
+            const sorted = loans.sort((a,b) => new Date(b.loanDate) - new Date(a.loanDate));
+            tbody.innerHTML = sorted.map(l => `
+                <tr class="hover:bg-slate-50 border-b border-slate-50 transition">
+                    <td class="px-6 py-4 font-black text-slate-800">${l.productName}</td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs font-black text-slate-700">${l.borrowerName}</div>
+                        <div class="text-[10px] text-slate-400 font-bold">${l.borrowerRUT}</div>
+                    </td>
+                    <td class="px-6 py-4 text-[10px] font-bold text-slate-500">${new Date(l.loanDate).toLocaleDateString()}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black ${l.isReturned ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${l.isReturned ? 'BODEGA' : 'EN USO'}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        ${!l.isReturned ? `<button onclick="window.processReturn('${l.id}')" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter hover:bg-slate-800 transition">Devolver</button>` : '<i data-lucide="check-circle" class="text-green-500 inline w-5 h-5"></i>'}
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateStats() {
+            const activeLoans = document.getElementById('stat-active-loans');
+            const returnsToday = document.getElementById('stat-returns-today');
+            const badStock = document.getElementById('stat-bad-stock');
+
+            if (activeLoans) activeLoans.textContent = loans.filter(l => !l.isReturned).length;
+            if (returnsToday) returnsToday.textContent = loans.filter(l => l.isReturned && new Date(l.returnDate).toDateString() === new Date().toDateString()).length;
+            if (badStock) badStock.textContent = products.reduce((s,p) => s + (p.bad || 0), 0);
+        }
+
+        function showToast(m, t="success") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastContent = document.getElementById('toast-content');
+            if (!toast || !toastMsg || !toastContent) return;
+
+            toastMsg.textContent = m;
+            toastContent.className = `px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border ${t === 'error' ? 'bg-red-600 border-red-500' : 'bg-slate-900 border-slate-700'} text-white`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        const searchInput = document.getElementById('search-inventory');
+        if (searchInput) {
+            searchInput.oninput = () => renderInventory();
+        }
+
+        setInterval(() => {
+            const el = document.getElementById('current-time-display');
+            if(el) el.textContent = new Date().toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'medium' });
+        }, 1000);
+    </script>
+</body>
+</html>
