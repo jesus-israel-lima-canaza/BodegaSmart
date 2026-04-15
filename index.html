@@ -3,284 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INACAP - Sistema de Gestión de Bodega</title>
+    <title>INACAP - Bodega Smart V1 PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal.active { display: flex; }
-        .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important; }
-        .animate-pop { animation: pop 0.3s ease-out; }
+        .input-inacap { width: 100%; padding: 0.75rem 1rem; background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem; outline: none; transition: all 0.2s; font-weight: 500; }
+        .input-inacap:focus { border-color: #e30613; box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1); }
+        .btn-inacap { background-color: #e30613; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.025em; transition: all 0.2s; cursor: pointer; border: none; }
+        .btn-inacap:hover { background-color: #c40510; transform: translateY(-1px); }
+        .animate-pop { animation: pop 0.25s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        
-        /* Personalización de colores INACAP */
-        .bg-inacap-red { background-color: #e30613; }
-        .text-inacap-red { color: #e30613; }
-        .border-inacap-red { border-color: #e30613; }
-        .focus-ring-inacap:focus { --tw-ring-color: #e30613; }
+        .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
     </style>
 </head>
 <body>
 
     <div id="app" class="min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-full md:w-64 bg-black text-white flex-shrink-0 hidden flex-col border-r border-slate-800">
-            <div class="p-6">
+        <aside id="sidebar" class="w-full md:w-72 bg-slate-900 text-white flex-shrink-0 hidden flex-col border-r border-slate-800">
+            <div class="p-8">
                 <h1 class="text-2xl font-black flex items-center tracking-tighter">
-                    <span class="bg-inacap-red px-2 py-0.5 rounded mr-0.5 text-white">I</span>NACAP
+                    <span class="bg-[#e30613] px-2 py-0.5 rounded mr-1.5 text-white">I</span>NACAP
                 </h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">Gestión de Bodega</p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-[0.2em] mt-2 font-bold">Bodega Smart V1</p>
             </div>
-            <nav class="flex-1 px-4 space-y-2">
-                <button onclick="window.switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="dashboard">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+            
+            <nav class="flex-1 px-4 space-y-1.5">
+                <button onclick="window.switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold" data-tab="dashboard">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Vista General
                 </button>
-                <button onclick="window.switchTab('inventory')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="inventory">
-                    <i data-lucide="list" class="w-4 h-4"></i> Inventario
+                <button onclick="window.switchTab('inventory')" class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold" data-tab="inventory">
+                    <i data-lucide="box" class="w-4 h-4"></i> Inventario
                 </button>
-                <button onclick="window.switchTab('loans')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition text-sm font-medium" data-tab="loans">
-                    <i data-lucide="hand-metal" class="w-4 h-4"></i> Préstamos
+                <button onclick="window.switchTab('loans')" class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold" data-tab="loans">
+                    <i data-lucide="arrow-right-left" class="w-4 h-4"></i> Préstamos
+                </button>
+                <button id="nav-users" onclick="window.switchTab('users')" class="nav-btn hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold" data-tab="users">
+                    <i data-lucide="users" class="w-4 h-4"></i> Usuarios
+                </button>
+                <button onclick="window.switchTab('history')" class="nav-btn w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold" data-tab="history">
+                    <i data-lucide="history" class="w-4 h-4"></i> Historial
                 </button>
             </nav>
-            <div class="p-4 border-t border-slate-800">
-                <div class="flex items-center gap-3 text-sm mb-4 p-2 bg-slate-800/50 rounded-xl">
-                    <div class="w-8 h-8 rounded-lg bg-inacap-red flex items-center justify-center font-bold text-xs" id="user-avatar">?</div>
-                    <div class="overflow-hidden">
-                        <p class="font-bold truncate text-xs text-white" id="display-user-role">Cargando...</p>
-                        <p class="text-[9px] text-red-400 font-bold uppercase tracking-tighter">Sesión Activa</p>
+
+            <div class="p-4 mt-auto border-t border-slate-800">
+                <div class="bg-slate-800/50 p-4 rounded-2xl mb-4 border border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#e30613] flex items-center justify-center font-black text-sm shadow-lg shadow-red-900/20" id="user-avatar">?</div>
+                        <div class="overflow-hidden">
+                            <p class="font-bold text-sm truncate" id="display-user-role">Cargando...</p>
+                            <p class="text-[10px] text-slate-400 truncate" id="display-user-email">---</p>
+                        </div>
                     </div>
                 </div>
-                <button onclick="window.logout()" class="w-full text-left text-slate-400 flex items-center gap-2 text-xs px-4 py-2 rounded-lg hover:bg-red-900/20 hover:text-red-400 transition font-bold">
-                    <i data-lucide="log-out" class="w-3 h-3"></i> CERRAR SESIÓN
+                <button onclick="window.logout()" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-700 text-slate-400 text-xs font-bold hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/50 transition uppercase tracking-widest">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Salir
                 </button>
             </div>
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- Header Móvil -->
-            <header id="mobile-header" class="hidden bg-black text-white p-4 justify-between items-center md:hidden">
-                <h1 class="text-xl font-bold flex items-center tracking-tighter"><span class="bg-inacap-red px-2 py-0.5 rounded mr-0.5 text-white">I</span>NACAP</h1>
-                <button onclick="window.toggleSidebar()" class="p-2 hover:bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
-            </header>
+            <!-- Login View -->
+            <section id="login-view" class="min-h-screen flex items-center justify-center p-6 bg-slate-950">
+                <div class="bg-white p-10 md:p-14 rounded-[3rem] shadow-2xl w-full max-w-md animate-pop">
+                    <div class="flex flex-col items-center mb-10 text-center">
+                        <div class="p-6 bg-black text-white rounded-[2rem] mb-6 shadow-2xl">
+                            <h1 class="text-4xl font-black tracking-tighter"><span class="bg-[#e30613] px-3 py-1 rounded mr-1.5">I</span>NACAP</h1>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="auth-title">Iniciar Sesión</h2>
+                        <p class="text-slate-500 mt-2 text-sm font-medium" id="auth-subtitle">Usa tus credenciales registradas</p>
+                    </div>
+                    
+                    <form id="login-form" class="space-y-4">
+                        <input type="email" id="login-email" required class="input-inacap" placeholder="correo@inacap.cl">
+                        <input type="password" id="login-password" required class="input-inacap" placeholder="••••••••">
+                        <button type="submit" id="btn-login-submit" class="w-full btn-inacap py-4 shadow-xl shadow-red-200 mt-4">INGRESAR</button>
+                        <button type="button" id="toggle-auth" class="w-full text-xs font-bold text-slate-400 hover:text-[#e30613] transition uppercase tracking-widest mt-4">¿No tienes cuenta? Regístrate</button>
+                    </form>
 
-            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-8">
-                <!-- Pantalla de Login -->
-                <section id="login-view" class="min-h-[80vh] flex items-center justify-center">
-                    <div class="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100">
-                        <div class="flex flex-col items-center mb-10 text-center">
-                            <div class="p-6 bg-black text-white rounded-3xl mb-4 shadow-xl">
-                                <h1 class="text-4xl font-black tracking-tighter"><span class="bg-inacap-red px-3 py-1 rounded mr-1">I</span>NACAP</h1>
+                    <div id="login-error" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-pop">
+                        <p id="login-error-text" class="text-[11px] text-red-600 font-bold leading-relaxed"></p>
+                        <div id="uid-helper" class="hidden mt-3 pt-3 border-t border-red-200 text-center">
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Tu UID (Cópialo):</p>
+                            <div class="flex gap-2">
+                                <input type="text" id="uid-input" readonly class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-[10px] font-mono outline-none text-center">
+                                <button type="button" onclick="window.copyUID()" class="bg-slate-900 text-white px-3 rounded-lg text-[10px] font-black">COPIAR</button>
                             </div>
-                            <h2 class="text-2xl font-black text-slate-800">Acceso Institucional</h2>
-                            <p class="text-slate-500 mt-1" id="login-status">Estableciendo conexión segura...</p>
                         </div>
-                        <div class="space-y-4">
-                            <button onclick="window.login('admin')" class="w-full py-4 bg-black text-white rounded-2xl font-bold hover:bg-slate-900 transition flex items-center justify-center gap-3 shadow-xl">
-                                <i data-lucide="shield" class="w-5 h-5 text-inacap-red"></i> Perfil Administrador
-                            </button>
-                            <button onclick="window.login('staff')" class="w-full py-4 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:border-red-500 hover:text-inacap-red transition flex items-center justify-center gap-3">
-                                <i data-lucide="user" class="w-5 h-5"></i> Perfil Encargado
-                            </button>
+                    </div>
+                </div>
+            </section>
+
+            <div id="auth-content" class="hidden flex-1 overflow-y-auto p-4 md:p-8">
+                <!-- Dashboard -->
+                <section id="tab-dashboard" class="tab-content active space-y-6">
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Préstamo</p>
+                            <h3 class="text-6xl font-black text-slate-900 mt-2" id="stat-active-loans">0</h3>
                         </div>
-                        <div id="local-error-box" class="hidden mt-8 p-5 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-xs">
-                            <p class="font-black mb-1 flex items-center gap-2"><i data-lucide="alert-octagon" class="w-4 h-4"></i> ERROR DE PROTOCOLO LOCAL</p>
-                            Firebase requiere un servidor <b>HTTP/HTTPS</b>. No funcionará si abres el archivo directamente desde tu carpeta. Usa Live Server o la Vista Previa del chat.
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Retornos Hoy</p>
+                            <h3 class="text-6xl font-black text-slate-900 mt-2" id="stat-returns-today">0</h3>
+                        </div>
+                        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bajas Técnicas</p>
+                            <h3 class="text-6xl font-black text-[#e30613] mt-2" id="stat-bad-stock">0</h3>
                         </div>
                     </div>
                 </section>
 
-                <div id="auth-content" class="hidden">
-                    <!-- Dashboard -->
-                    <section id="tab-dashboard" class="tab-content active space-y-6">
-                        <h2 class="text-3xl font-black text-slate-800">Dashboard Institucional</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">En Préstamo</p>
-                                <h3 class="text-5xl font-black text-slate-800 mt-2" id="stat-active-loans">0</h3>
-                            </div>
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Retornos Hoy</p>
-                                <h3 class="text-5xl font-black text-slate-800 mt-2" id="stat-returns-today">0</h3>
-                            </div>
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Equipos de Baja</p>
-                                <h3 class="text-5xl font-black text-inacap-red mt-2" id="stat-bad-stock">0</h3>
-                            </div>
+                <!-- Inventory -->
+                <section id="tab-inventory" class="tab-content space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Inventario de Equipos</h2>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button id="admin-add-btn" onclick="window.openModal('modal-product')" class="hidden flex-1 md:flex-none btn-inacap text-xs">Nuevo</button>
+                            <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden flex-1 md:flex-none bg-slate-200 px-6 py-3 rounded-xl font-bold text-xs uppercase">CSV</button>
+                            <input type="file" id="csv-import" class="hidden" accept=".csv" onchange="window.handleCSVImport(event)">
                         </div>
-                    </section>
+                    </div>
 
-                    <!-- Inventory -->
-                    <section id="tab-inventory" class="tab-content space-y-6">
-                        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                            <h2 class="text-3xl font-black text-slate-800">Inventario Central</h2>
-                            <div class="flex gap-2">
-                                <button id="admin-add-btn" onclick="window.openModal('modal-product')" class="hidden bg-inacap-red text-white px-8 py-3 rounded-2xl font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-lg shadow-red-100">
-                                    <i data-lucide="plus" class="w-5 h-5"></i> NUEVO EQUIPO
-                                </button>
-                                <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden bg-slate-100 text-slate-700 px-8 py-3 rounded-2xl font-bold hover:bg-slate-200 transition">
-                                    IMPORTAR CSV
-                                </button>
-                                <input type="file" id="csv-import" class="hidden" accept=".csv" onchange="window.handleCSVImport(event)">
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b flex flex-col md:flex-row gap-4">
+                            <div class="flex-1 relative">
+                                <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="inventory-search" placeholder="Buscar por nombre, código o ubicación..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-red-500" oninput="window.renderInventory(1)">
                             </div>
                         </div>
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                            <div class="relative">
-                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                                <input type="text" id="search-inventory" placeholder="Filtrar por nombre o código..." class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-4 focus:ring-red-50 font-medium transition-all">
-                            </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
+                                    <tr>
+                                        <th class="px-6 py-5">Equipo / Especificaciones</th>
+                                        <th class="px-4 py-5">Código</th>
+                                        <th class="px-4 py-5 text-center">Ubicación</th>
+                                        <th class="px-4 py-5 text-center">Estados</th>
+                                        <th class="px-4 py-5 text-center">Disponibles</th>
+                                        <th class="px-6 py-5 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
-                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
-                                        <tr>
-                                            <th class="px-6 py-4">Equipo</th>
-                                            <th class="px-6 py-4">Código</th>
-                                            <th class="px-6 py-4 text-center">Total</th>
-                                            <th class="px-6 py-4 text-center bg-red-50/50">Libres</th>
-                                            <th class="px-6 py-4">Estados</th>
-                                            <th class="px-6 py-4 text-right">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="inventory-table" class="divide-y divide-slate-50"></tbody>
-                                </table>
-                            </div>
+                        <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="inventory-pagination">
                         </div>
-                    </section>
+                    </div>
+                </section>
 
-                    <!-- Loans -->
-                    <section id="tab-loans" class="tab-content space-y-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-3xl font-black text-slate-800">Préstamos Activos</h2>
-                            <button onclick="window.openLoanModal()" class="bg-black text-white px-8 py-3 rounded-2xl font-bold hover:bg-slate-900 transition">NUEVA SALIDA</button>
-                        </div>
-                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
-                                        <tr>
-                                            <th class="px-6 py-4">Equipo</th>
-                                            <th class="px-6 py-4">Solicitante</th>
-                                            <th class="px-6 py-4">Salida</th>
-                                            <th class="px-6 py-4">Retorno</th>
-                                            <th class="px-6 py-4 text-right">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="loans-table" class="divide-y divide-slate-50"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+                <!-- Users -->
+                <section id="tab-users" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Gestión de Acceso</h2>
+                        <button onclick="window.openModal('modal-user-role')" class="btn-inacap text-xs">Habilitar Usuario</button>
+                    </div>
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                                <tr>
+                                    <th class="px-8 py-5">Correo</th>
+                                    <th class="px-6 py-5 text-center">Rol</th>
+                                    <th class="px-8 py-5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Loans -->
+                <section id="tab-loans" class="tab-content space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Préstamos Activos</h2>
+                        <button onclick="window.openLoanModal()" class="btn-inacap text-xs">Nueva Salida</button>
+                    </div>
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                                <tr>
+                                    <th class="px-8 py-5">Equipo</th>
+                                    <th class="px-6 py-5">Solicitante</th>
+                                    <th class="px-6 py-5 text-center">Salida</th>
+                                    <th class="px-6 py-5 text-center">Retorno</th>
+                                    <th class="px-8 py-5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loans-table" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- History -->
+                <section id="tab-history" class="tab-content space-y-6">
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Auditoría de Movimientos</h2>
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
+                                <tr>
+                                    <th class="px-8 py-5">Momento</th>
+                                    <th class="px-6 py-5">Usuario</th>
+                                    <th class="px-8 py-5">Acción / Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
 
-    <!-- Modal Producto -->
-    <div id="modal-product" class="modal p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-pop">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="text-xl font-black text-slate-800">Ficha de Equipo</h3>
-                <button onclick="window.closeModal('modal-product')" class="p-2 hover:bg-slate-200 rounded-lg"><i data-lucide="x"></i></button>
+    <!-- Modales -->
+    <div id="modal-product" class="modal p-4"><div class="bg-white p-8 rounded-[2.5rem] w-full max-w-2xl overflow-hidden animate-pop">
+        <h3 class="text-xl font-black mb-6">Ficha Técnica del Equipo</h3>
+        <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-2">
+            <input type="hidden" id="edit-product-id">
+            <div class="md:col-span-2">
+                <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Nombre</label>
+                <input type="text" id="p-name" required class="input-inacap" placeholder="Ej: Multimetro Digital">
             </div>
-            <form id="product-form" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-5 max-h-[75vh] overflow-y-auto">
-                <input type="hidden" id="edit-product-id">
-                <div class="md:col-span-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Nombre</label>
-                    <input type="text" id="p-name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold focus:border-red-500">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Código</label>
-                    <input type="text" id="p-code" placeholder="BS-XXXXX" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Ubicación</label>
-                    <input type="text" id="p-location" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Especificaciones</label>
-                    <textarea id="p-specs" rows="2" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium"></textarea>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Cantidad Total de Unidades</label>
-                    <input type="number" id="p-total" min="1" required class="w-full p-4 bg-slate-100 border-2 border-slate-200 rounded-2xl outline-none font-black text-2xl text-center focus:border-red-500" oninput="window.validateStockMath()">
-                </div>
-                
-                <div class="bg-red-50/50 p-6 rounded-3xl md:col-span-2 space-y-4 border border-red-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-red-800 uppercase">Desglose Físico</span>
-                        <span id="stock-warning" class="text-[9px] font-black px-3 py-1.5 rounded-full bg-green-100 text-green-600 uppercase">Sincronizado</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="text-center">
-                            <label class="text-[9px] font-black text-green-600 block mb-1">Buenos</label>
-                            <input type="number" id="p-good" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-green-500" oninput="window.validateStockMath()">
-                        </div>
-                        <div class="text-center">
-                            <label class="text-[9px] font-black text-amber-600 block mb-1">Reparables</label>
-                            <input type="number" id="p-repair" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-amber-500" oninput="window.validateStockMath()">
-                        </div>
-                        <div class="text-center">
-                            <label class="text-[9px] font-black text-inacap-red block mb-1">Malos</label>
-                            <input type="number" id="p-bad" min="0" required class="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-center outline-none focus:ring-2 focus:ring-red-500" oninput="window.validateStockMath()">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:col-span-2 pt-4 flex gap-3">
-                    <button type="submit" id="save-product-btn" class="flex-1 bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed">Guardar Equipo</button>
-                    <button type="button" onclick="window.closeModal('modal-product')" class="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold">Cerrar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Préstamo -->
-    <div id="modal-loan" class="modal p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-lg overflow-hidden animate-pop">
-            <div class="p-6 border-b flex justify-between items-center bg-black text-white">
-                <h3 class="text-xl font-black">Registrar Salida</h3>
-                <button onclick="window.closeModal('modal-loan')"><i data-lucide="x"></i></button>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Código</label>
+                <input type="text" id="p-code" class="input-inacap" placeholder="INC-001">
             </div>
-            <form id="loan-form" class="p-8 space-y-5">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Equipo a prestar</label>
-                    <select id="l-product" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none"></select>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Ubicación</label>
+                <input type="text" id="p-location" required class="input-inacap" placeholder="Estante A-4">
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Especificaciones</label>
+                <textarea id="p-specs" class="input-inacap h-20 resize-none" placeholder="Detalles técnicos..."></textarea>
+            </div>
+            <div class="md:col-span-2 bg-slate-50 p-6 rounded-[2rem] grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <label class="text-[9px] font-black text-slate-600 block mb-1">Total</label>
+                    <input type="number" id="p-total" required class="input-inacap text-center" oninput="window.validateStockMath()">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Cantidad</label>
-                        <input type="number" id="l-qty" min="1" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">RUT Responsable</label>
-                        <input type="text" id="l-rut" placeholder="12.345.678-9" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
-                    </div>
+                <div class="text-center">
+                    <label class="text-[9px] font-black text-green-600 block mb-1">Buenos</label>
+                    <input type="number" id="p-good" required class="input-inacap text-center" oninput="window.validateStockMath()">
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Nombre Completo</label>
-                    <input type="text" id="l-name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none">
+                <div class="text-center">
+                    <label class="text-[9px] font-black text-amber-600 block mb-1">Reparación</label>
+                    <input type="number" id="p-repair" required class="input-inacap text-center" oninput="window.validateStockMath()">
                 </div>
-                <button type="submit" class="w-full bg-inacap-red text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-100">Emitir Salida</button>
-            </form>
-        </div>
-    </div>
+                <div class="text-center">
+                    <label class="text-[9px] font-black text-red-600 block mb-1">Malos</label>
+                    <input type="number" id="p-bad" required class="input-inacap text-center" oninput="window.validateStockMath()">
+                </div>
+                <div id="stock-warning" class="col-span-full text-[10px] font-bold text-center mt-2"></div>
+            </div>
+            <div class="md:col-span-2 flex gap-3 pt-4">
+                <button type="submit" id="save-product-btn" class="flex-1 btn-inacap">Guardar Cambios</button>
+                <button type="button" onclick="window.closeModal('modal-product')" class="px-8 py-4 bg-slate-100 rounded-xl font-bold uppercase text-xs">Cerrar</button>
+            </div>
+        </form>
+    </div></div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 right-8 z-[150] transform translate-y-20 transition-all duration-300 opacity-0 pointer-events-none">
-        <div id="toast-content" class="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
+    <!-- Nuevo Modal de Retorno -->
+    <div id="modal-return-state" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-md text-center animate-pop">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="package-check" class="text-slate-900 w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-black mb-2">Confirmar Retorno</h3>
+        <p class="text-slate-500 text-sm mb-8">¿En qué estado se encuentra el equipo que están devolviendo?</p>
+        <div class="space-y-3">
+            <button onclick="window.executeReturn('good')" class="w-full py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-green-600 transition flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Llegó en Buen Estado
+            </button>
+            <button onclick="window.executeReturn('repair')" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-amber-600 transition flex items-center justify-center gap-2">
+                <i data-lucide="wrench" class="w-4 h-4"></i> Llegó para Reparar
+            </button>
+            <button onclick="window.executeReturn('bad')" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs hover:bg-red-700 transition flex items-center justify-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Llegó Malo / Inservible
+            </button>
+            <button onclick="window.closeModal('modal-return-state')" class="w-full py-3 text-slate-400 font-bold uppercase text-[10px] mt-4 tracking-widest">Cancelar</button>
+        </div>
+    </div></div>
+
+    <div id="modal-user-role" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg">
+        <h3 class="text-xl font-black mb-6">Habilitar Acceso</h3>
+        <form id="user-role-form" class="space-y-4">
+            <input type="text" id="u-uid" required class="input-inacap" placeholder="Pegar UID aquí">
+            <input type="email" id="u-email" required class="input-inacap" placeholder="Correo del usuario">
+            <select id="u-role" required class="input-inacap">
+                <option value="encargado">Encargado (Solo préstamos)</option>
+                <option value="admin">Administrador (Control total)</option>
+            </select>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 btn-inacap">Habilitar</button>
+                <button type="button" onclick="window.closeModal('modal-user-role')" class="px-6 py-4 bg-slate-100 rounded-xl font-bold">Cerrar</button>
+            </div>
+        </form>
+    </div></div>
+
+    <div id="modal-loan" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg">
+        <h3 class="text-xl font-black mb-6">Formulario de Salida</h3>
+        <form id="loan-form" class="space-y-4">
+            <select id="l-product" required class="input-inacap"></select>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="number" id="l-qty" min="1" required class="input-inacap" placeholder="Cantidad">
+                <input type="text" id="l-rut" required class="input-inacap" placeholder="RUT">
+            </div>
+            <input type="text" id="l-name" required class="input-inacap" placeholder="Nombre completo">
+            <button type="submit" class="w-full btn-inacap py-5 shadow-lg shadow-red-100">CONFIRMAR SALIDA</button>
+        </form>
+    </div></div>
+
+    <div id="toast" class="fixed bottom-8 right-8 z-[200] transform translate-y-20 transition-all duration-300 opacity-0 pointer-events-none">
+        <div id="toast-content" class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700">
             <span id="toast-message" class="font-bold text-sm"></span>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAyY6-4Qc8Yhvpv0JV0X46jVIHSfOPQ44c",
@@ -291,431 +337,442 @@
             appId: "1:637119460023:web:86811fde9a937894c5d332"
         };
 
-        const appId = 'bodegasmart-sistema';
+        const appId = 'bodega-smart-v1';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let products = [];
-        let loans = [];
-        let userRole = null;
+        let products = [], loans = [], logs = [], userProfile = null, isRegisterMode = false;
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        let activeReturnId = null;
 
-        // --- FUNCIONES CORE ---
-        window.switchTab = (id) => {
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(el => el.classList.remove('active'));
-            const target = document.getElementById('tab-' + id);
-            if (target) target.classList.add('active');
+        // --- AUTH ---
+        document.getElementById('toggle-auth').onclick = () => {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión';
+            document.getElementById('auth-subtitle').textContent = isRegisterMode ? 'Regístrate para solicitar acceso' : 'Usa tus credenciales registradas';
+            document.getElementById('btn-login-submit').textContent = isRegisterMode ? 'REGISTRARSE' : 'INGRESAR';
+            document.getElementById('toggle-auth').textContent = isRegisterMode ? '¿Ya tienes cuenta? Ingresa' : '¿No tienes cuenta? Regístrate';
+        };
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const btn = document.getElementById('btn-login-submit');
+            const errorDiv = document.getElementById('login-error');
+            const errorText = document.getElementById('login-error-text');
+            const uidInput = document.getElementById('uid-input');
+            const uidHelper = document.getElementById('uid-helper');
             
-            const navButtons = document.querySelectorAll('.nav-btn');
-            navButtons.forEach(b => {
+            btn.disabled = true; btn.textContent = isRegisterMode ? "REGISTRANDO..." : "VERIFICANDO...";
+            errorDiv.classList.add('hidden');
+
+            try {
+                let userCredential;
+                if (isRegisterMode) {
+                    userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                } else {
+                    userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                }
+                
+                const uid = userCredential.user.uid.trim();
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', uid);
+                const profileSnap = await getDoc(profileRef);
+                
+                if (!profileSnap.exists()) {
+                    uidInput.value = uid;
+                    uidHelper.classList.remove('hidden');
+                    throw new Error(isRegisterMode ? "¡Cuenta creada! Copia tu UID y entrégalo al administrador." : "Acceso denegado: Perfil no habilitado.");
+                }
+            } catch (err) {
+                errorDiv.classList.remove('hidden');
+                errorText.textContent = err.message;
+                if (auth.currentUser) { uidInput.value = auth.currentUser.uid; uidHelper.classList.remove('hidden'); }
+                if (!isRegisterMode || !err.message.includes("¡Cuenta creada!")) signOut(auth);
+            } finally { btn.disabled = false; btn.textContent = isRegisterMode ? 'REGISTRARSE' : 'INGRESAR'; }
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
+                const snap = await getDoc(profileRef);
+                if (snap.exists()) {
+                    userProfile = { uid: user.uid, email: user.email, ...snap.data() };
+                    renderApp();
+                } else { signOut(auth); }
+            } else {
+                document.getElementById('auth-content').classList.add('hidden');
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('login-view').classList.remove('hidden');
+            }
+        });
+
+        function renderApp() {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('flex');
+            document.getElementById('auth-content').classList.remove('hidden');
+            
+            document.getElementById('display-user-role').textContent = userProfile.role === 'admin' ? 'Administrador' : 'Encargado';
+            document.getElementById('display-user-email').textContent = userProfile.email;
+            document.getElementById('user-avatar').textContent = userProfile.role === 'admin' ? 'AD' : 'EN';
+
+            const isAdmin = userProfile.role === 'admin';
+            document.getElementById('admin-add-btn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('admin-import-btn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('nav-users').classList.toggle('hidden', !isAdmin);
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
+                products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                window.renderInventory(currentPage); 
+                updateStats();
+            });
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), (snap) => {
+                loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderLoans(); 
+                updateStats();
+            });
+            if (isAdmin) {
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snap) => {
+                    renderUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
+            }
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'), (snap) => {
+                logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderHistory();
+            });
+            lucide.createIcons();
+        }
+
+        async function logAction(action, detail) {
+            try { 
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'), {
+                    timestamp: new Date().toISOString(), userEmail: userProfile.email, action, detail
+                }); 
+            } catch(e) {}
+        }
+
+        // --- INVENTORY ---
+        window.renderInventory = (page = 1) => {
+            currentPage = page;
+            const tbody = document.getElementById('inventory-table');
+            const paginator = document.getElementById('inventory-pagination');
+            if(!tbody) return;
+
+            const search = document.getElementById('inventory-search').value.toLowerCase();
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                (p.code && p.code.toLowerCase().includes(search)) ||
+                (p.location && p.location.toLowerCase().includes(search))
+            );
+
+            const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+            const start = (currentPage - 1) * itemsPerPage;
+            const paginated = filtered.slice(start, start + itemsPerPage);
+
+            tbody.innerHTML = paginated.map(p => `
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-800">${p.name}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${p.specs || 'Sin especificaciones'}</div>
+                    </td>
+                    <td class="px-4 py-4 font-mono text-xs font-bold text-slate-500">${p.code || '---'}</td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            <i data-lucide="map-pin" class="w-2.5 h-2.5"></i> ${p.location || 'BOD'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex gap-1 justify-center">
+                            <span class="status-badge bg-green-50 text-green-700" title="Buenos">${p.good || 0}</span>
+                            <span class="status-badge bg-amber-50 text-amber-700" title="Reparables">${p.repair || 0}</span>
+                            <span class="status-badge bg-red-50 text-red-700" title="Malos">${p.bad || 0}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.available > 0 ? 'bg-inacap-red text-white' : 'bg-slate-200 text-slate-400'}">${p.available}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        ${userProfile.role === 'admin' ? `<button onclick="window.editProduct('${p.id}')" class="text-slate-400 hover:text-black transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            paginator.innerHTML = `
+                <p class="text-xs font-bold text-slate-400 uppercase">Mostrando ${paginated.length} de ${filtered.length}</p>
+                <div class="flex gap-2">
+                    <button onclick="window.renderInventory(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30">ANTERIOR</button>
+                    <button onclick="window.renderInventory(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30">SIGUIENTE</button>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        window.validateStockMath = () => {
+            const total = parseInt(document.getElementById('p-total').value) || 0;
+            const good = parseInt(document.getElementById('p-good').value) || 0;
+            const rep = parseInt(document.getElementById('p-repair').value) || 0;
+            const bad = parseInt(document.getElementById('p-bad').value) || 0;
+            const warn = document.getElementById('stock-warning');
+            const btn = document.getElementById('save-product-btn');
+            
+            const sum = good + rep + bad;
+            if (total > 0 && sum === total) {
+                warn.textContent = "✔ Balance Correcto"; warn.className = "text-[10px] text-green-500 font-bold"; btn.disabled = false;
+            } else {
+                warn.textContent = total > sum ? `Faltan ${total - sum} unidades` : `Exceso de ${sum - total} unidades`;
+                warn.className = "text-[10px] text-red-500 font-bold"; btn.disabled = true;
+            }
+        };
+
+        document.getElementById('product-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-product-id').value;
+            const data = {
+                name: document.getElementById('p-name').value, code: document.getElementById('p-code').value,
+                specs: document.getElementById('p-specs').value, location: document.getElementById('p-location').value,
+                total: parseInt(document.getElementById('p-total').value), 
+                good: parseInt(document.getElementById('p-good').value),
+                repair: parseInt(document.getElementById('p-repair').value),
+                bad: parseInt(document.getElementById('p-bad').value),
+                available: parseInt(document.getElementById('p-good').value),
+                updatedAt: new Date().toISOString()
+            };
+            try {
+                const col = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+                if (id) await updateDoc(doc(col, id), data); else await addDoc(col, data);
+                window.closeModal('modal-product'); showToast("Inventario Actualizado");
+            } catch(e) { showToast("Error al guardar", "error"); }
+        };
+
+        // --- LOANS & RETURNS ---
+        window.openLoanModal = () => {
+            const s = document.getElementById('l-product');
+            s.innerHTML = products.filter(p => p.available > 0).map(p => `<option value="${p.id}">${p.name} (Libres: ${p.available})</option>`).join('');
+            window.openModal('modal-loan');
+        };
+
+        document.getElementById('loan-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const pid = document.getElementById('l-product').value;
+            const qty = parseInt(document.getElementById('l-qty').value);
+            const p = products.find(x => x.id === pid);
+            if (!p || qty > p.available) return showToast("Stock insuficiente", "error");
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), {
+                    productId: pid, productName: p.name, borrowerName: document.getElementById('l-name').value,
+                    borrowerRUT: document.getElementById('l-rut').value, qty, isReturned: false, loanDate: new Date().toISOString()
+                });
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', pid), { 
+                    available: p.available - qty,
+                    good: p.good - qty
+                });
+                await logAction("Préstamo", `Entregado: ${qty}x ${p.name} a ${document.getElementById('l-name').value}`);
+                window.closeModal('modal-loan'); showToast("Salida Registrada");
+            } catch(e) { showToast("Error de conexión", "error"); }
+        };
+
+        window.openReturnModal = (id) => {
+            activeReturnId = id;
+            window.openModal('modal-return-state');
+        };
+
+        window.executeReturn = async (state) => {
+            const l = loans.find(x => x.id === activeReturnId);
+            if(!l) return;
+            const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
+            try {
+                const pSnap = await getDoc(pRef);
+                const pData = pSnap.data();
+                const now = new Date().toISOString();
+                
+                let productUpdate = {};
+                if (state === 'good') {
+                    productUpdate = { 
+                        available: (pData.available || 0) + l.qty,
+                        good: (pData.good || 0) + l.qty 
+                    };
+                } else if (state === 'repair') {
+                    productUpdate = { repair: (pData.repair || 0) + l.qty };
+                } else {
+                    productUpdate = { bad: (pData.bad || 0) + l.qty };
+                }
+
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', activeReturnId), { 
+                    isReturned: true, 
+                    returnDate: now,
+                    returnStatus: state
+                });
+                
+                await updateDoc(pRef, productUpdate);
+                
+                const statusLabels = { 'good': 'Buen Estado', 'repair': 'Para Reparar', 'bad': 'Mal Estado' };
+                await logAction("Retorno", `Devolución: ${l.qty}x ${l.productName} (${statusLabels[state]}) por ${l.borrowerName}`);
+                
+                window.closeModal('modal-return-state');
+                showToast("Retorno registrado con éxito");
+            } catch(e) { showToast("Error al procesar retorno", "error"); }
+        };
+
+        function renderLoans() {
+            const tbody = document.getElementById('loans-table');
+            if(!tbody) return;
+            tbody.innerHTML = loans.map(l => `
+                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                    <td class="px-8 py-4 font-bold text-slate-800">${l.productName}</td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs font-bold text-slate-800">${l.borrowerName}</div>
+                        <div class="text-[10px] text-slate-400 font-bold">${l.borrowerRUT}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="text-[11px] font-black text-slate-600">${new Date(l.loanDate).toLocaleDateString()}</div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">${new Date(l.loanDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        ${l.isReturned ? `
+                            <div class="text-[11px] font-black text-green-600">${new Date(l.returnDate).toLocaleDateString()}</div>
+                            <div class="text-[10px] text-green-500 font-bold uppercase">${new Date(l.returnDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        ` : '<span class="text-[9px] font-black text-slate-300">PENDIENTE</span>'}
+                    </td>
+                    <td class="px-8 py-4 text-right">
+                        ${!l.isReturned ? `<button onclick="window.openReturnModal('${l.id}')" class="bg-black text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-slate-800">Retornar</button>` : `<span class="status-badge ${l.returnStatus === 'good' ? 'bg-green-100 text-green-700' : l.returnStatus === 'repair' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'} uppercase">${l.returnStatus || 'Listo'}</span>`}
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- HISTORY ---
+        function renderHistory() {
+            const tbody = document.getElementById('history-table');
+            if(!tbody) return;
+            tbody.innerHTML = logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 25).map(l => `
+                <tr class="border-b text-xs">
+                    <td class="px-8 py-4 text-slate-400 font-medium">
+                        ${new Date(l.timestamp).toLocaleDateString()} ${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </td>
+                    <td class="px-6 py-4 font-bold text-slate-700">${l.userEmail.split('@')[0]}</td>
+                    <td class="px-8 py-4 font-medium text-slate-500">${l.detail || l.action}</td>
+                </tr>
+            `).join('');
+        }
+
+        // --- USERS ---
+        document.getElementById('user-role-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const uid = document.getElementById('u-uid').value.trim();
+            const email = document.getElementById('u-email').value;
+            const role = document.getElementById('u-role').value;
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), { email, role });
+                showToast("Usuario habilitado"); window.closeModal('modal-user-role');
+            } catch(e) { showToast("Error al guardar", "error"); }
+        };
+
+        function renderUsers(list) {
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = list.map(u => `
+                <tr class="border-b">
+                    <td class="px-8 py-4 text-xs font-bold text-slate-700">${u.email}</td>
+                    <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${u.role === 'admin' ? 'bg-black text-white' : 'bg-slate-100 text-slate-500'}">${u.role}</span></td>
+                    <td class="px-8 py-4 text-right">
+                        ${u.id !== userProfile.uid ? `<button onclick="window.deleteUserRole('${u.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.deleteUserRole = async (uid) => {
+            if (confirm("¿Revocar acceso?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
+                showToast("Acceso revocado");
+            }
+        };
+
+        // --- UTILS ---
+        function updateStats() {
+            const active = document.getElementById('stat-active-loans');
+            const returns = document.getElementById('stat-returns-today');
+            const bad = document.getElementById('stat-bad-stock');
+            if(active) active.textContent = loans.filter(l => !l.isReturned).length;
+            if(returns) returns.textContent = loans.filter(l => l.isReturned && new Date(l.returnDate).toDateString() === new Date().toDateString()).length;
+            if(bad) bad.textContent = products.reduce((s,p) => s + (parseInt(p.bad) || 0), 0);
+        }
+
+        window.switchTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('tab-' + id);
+            if(target) target.classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => {
                 b.classList.remove('bg-slate-800', 'text-white');
                 if(b.dataset.tab === id) b.classList.add('bg-slate-800', 'text-white');
             });
         };
 
-        window.openModal = (id) => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('active');
-        };
-        
-        window.closeModal = (id) => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('active');
-            if(id === 'modal-product') {
-                const form = document.getElementById('product-form');
-                if (form) form.reset();
-                const editId = document.getElementById('edit-product-id');
-                if (editId) editId.value = '';
-                window.validateStockMath();
-            }
-        };
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        window.login = async (role) => {
-            if (window.location.protocol === 'file:') {
-                const errBox = document.getElementById('local-error-box');
-                if (errBox) errBox.classList.remove('hidden');
-                return;
-            }
-            localStorage.setItem('bodega_role', role);
-            const status = document.getElementById('login-status');
-            if (status) status.textContent = "Autenticando...";
-            try {
-                await signInAnonymously(auth);
-            } catch(e) { 
-                console.error("Auth Failed:", e);
-                showToast("Error de conexión con Firebase. ¿Internet?", "error");
-            }
-        };
-
-        window.logout = () => {
-            auth.signOut();
-            localStorage.removeItem('bodega_role');
-            location.reload();
-        };
-
-        window.validateStockMath = () => {
-            const totalEl = document.getElementById('p-total');
-            const goodEl = document.getElementById('p-good');
-            const repairEl = document.getElementById('p-repair');
-            const badEl = document.getElementById('p-bad');
-            
-            if (!totalEl || !goodEl || !repairEl || !badEl) return;
-
-            const total = parseInt(totalEl.value) || 0;
-            const b = parseInt(goodEl.value) || 0;
-            const r = parseInt(repairEl.value) || 0;
-            const m = parseInt(badEl.value) || 0;
-            
-            const currentSum = b + r + m;
-            const diff = total - currentSum;
-            const warn = document.getElementById('stock-warning');
-            const btn = document.getElementById('save-product-btn');
-            const fields = [goodEl, repairEl, badEl];
-
-            if (diff === 0 && total > 0) {
-                if (warn) {
-                    warn.textContent = "Sincronizado";
-                    warn.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-green-100 text-green-600 uppercase";
-                }
-                if (btn) btn.disabled = false;
-                fields.forEach(f => f.classList.remove('input-error'));
-            } else {
-                if (warn) {
-                    warn.textContent = diff > 0 ? `Faltan: ${diff}` : `Exceso: ${Math.abs(diff)}`;
-                    warn.className = "text-[9px] font-black px-3 py-1.5 rounded-full bg-red-100 text-red-600 uppercase";
-                }
-                if (btn) btn.disabled = true;
-                fields.forEach(f => f.classList.add('input-error'));
-            }
-        };
-
-        // --- AUTH OBSERVER ---
-        onAuthStateChanged(auth, (user) => {
-            const stored = localStorage.getItem('bodega_role');
-            if (user && stored) renderApp(stored);
-            else {
-                const loginView = document.getElementById('login-view');
-                if (loginView) loginView.classList.remove('hidden');
-                if (window.location.protocol === 'file:') {
-                    const errBox = document.getElementById('local-error-box');
-                    if (errBox) errBox.classList.remove('hidden');
-                }
-            }
-        });
-
-        function renderApp(role) {
-            userRole = role;
-            const loginView = document.getElementById('login-view');
-            const sidebar = document.getElementById('sidebar');
-            const authContent = document.getElementById('auth-content');
-            const mobileHeader = document.getElementById('mobile-header');
-            const displayRole = document.getElementById('display-user-role');
-            const avatar = document.getElementById('user-avatar');
-
-            if (loginView) loginView.classList.add('hidden');
-            if (sidebar) {
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('flex');
-            }
-            if (authContent) authContent.classList.remove('hidden');
-            if (mobileHeader) {
-                mobileHeader.classList.remove('hidden');
-                mobileHeader.classList.add('flex');
-            }
-            if (displayRole) displayRole.textContent = userRole === 'admin' ? 'Administrador' : 'Encargado';
-            if (avatar) avatar.textContent = userRole === 'admin' ? 'AD' : 'EB';
-
-            if (userRole === 'admin') {
-                const addBtn = document.getElementById('admin-add-btn');
-                const importBtn = document.getElementById('admin-import-btn');
-                if (addBtn) addBtn.classList.remove('hidden');
-                if (importBtn) importBtn.classList.remove('hidden');
-            }
-
-            // Suscripciones Firebase
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
-                products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderInventory(); updateStats();
-            });
-
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), (snap) => {
-                loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderLoans(); updateStats();
-            });
-
-            lucide.createIcons();
+        function showToast(m, t = "success") {
+            const toast = document.getElementById('toast'), msg = document.getElementById('toast-message'), content = document.getElementById('toast-content');
+            msg.textContent = m;
+            content.className = `bg-${t === 'success' ? 'slate-900' : 'red-600'} text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        // --- ACCIONES FIRESTORE ---
-        const productForm = document.getElementById('product-form');
-        if (productForm) {
-            productForm.onsubmit = async (e) => {
-                e.preventDefault();
-                const editIdInput = document.getElementById('edit-product-id');
-                const id = editIdInput ? editIdInput.value : null;
-                const good = parseInt(document.getElementById('p-good').value);
-                
-                const data = {
-                    name: document.getElementById('p-name').value,
-                    code: document.getElementById('p-code').value || 'BS-' + Math.floor(10000 + Math.random() * 90000),
-                    location: document.getElementById('p-location').value,
-                    specs: document.getElementById('p-specs').value,
-                    total: parseInt(document.getElementById('p-total').value),
-                    good: good,
-                    repair: parseInt(document.getElementById('p-repair').value),
-                    bad: parseInt(document.getElementById('p-bad').value),
-                    available: good, 
-                    updatedAt: new Date().toISOString()
-                };
-
-                try {
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-                    if (id) await updateDoc(doc(colRef, id), data);
-                    else await addDoc(colRef, data);
-                    window.closeModal('modal-product');
-                    showToast("Base de datos actualizada");
-                } catch(err) { showToast("Error Firestore: Revisa las Reglas", "error"); }
-            };
-        }
-
-        window.handleCSVImport = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async (ev) => {
-                const text = ev.target.result;
-                const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-                
-                if (lines.length <= 1) {
-                    showToast("El archivo parece estar vacío o mal formado", "error");
-                    return;
-                }
-
-                const header = lines[0];
-                const delimiter = header.includes(";") ? ";" : ",";
-                
-                const dataLines = lines.slice(1);
-                let count = 0;
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-                
-                for (let line of dataLines) {
-                    const parts = line.split(delimiter).map(x => x?.trim());
-                    const n = parts[0];
-                    if (!n) continue;
-
-                    try {
-                        await addDoc(colRef, {
-                            name: n,
-                            code: parts[1] || 'BS-'+Math.floor(Math.random()*99999),
-                            specs: parts[2] || '',
-                            location: parts[3] || 'Bodega',
-                            total: parseInt(parts[4]) || 0,
-                            good: parseInt(parts[5]) || 0,
-                            repair: parseInt(parts[6]) || 0,
-                            bad: parseInt(parts[7]) || 0,
-                            available: parseInt(parts[5]) || 0,
-                            updatedAt: new Date().toISOString()
-                        });
-                        count++;
-                    } catch(err) { 
-                        console.error("Fallo una fila", err); 
-                    }
-                }
-                
-                if (count === 0) {
-                    showToast("No se pudieron procesar filas. Revisa el formato.", "error");
-                } else {
-                    showToast(`Éxito: Se importaron ${count} registros`);
-                }
-                e.target.value = '';
-            };
-            reader.readAsText(file);
+        window.copyUID = () => {
+            const input = document.getElementById('uid-input');
+            input.select(); document.execCommand('copy'); showToast("UID copiado");
         };
 
         window.editProduct = (id) => {
             const p = products.find(x => x.id === id);
-            if (!p) return;
-            const editId = document.getElementById('edit-product-id');
-            const name = document.getElementById('p-name');
-            const code = document.getElementById('p-code');
-            const loc = document.getElementById('p-location');
-            const specs = document.getElementById('p-specs');
-            const total = document.getElementById('p-total');
-            const good = document.getElementById('p-good');
-            const repair = document.getElementById('p-repair');
-            const bad = document.getElementById('p-bad');
-
-            if (editId) editId.value = p.id;
-            if (name) name.value = p.name;
-            if (code) code.value = p.code;
-            if (loc) loc.value = p.location;
-            if (specs) specs.value = p.specs || '';
-            if (total) total.value = p.total;
-            if (good) good.value = p.good;
-            if (repair) repair.value = p.repair;
-            if (bad) bad.value = p.bad;
-
-            window.validateStockMath();
+            document.getElementById('edit-product-id').value = p.id;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-code').value = p.code || '';
+            document.getElementById('p-location').value = p.location || '';
+            document.getElementById('p-specs').value = p.specs || '';
+            document.getElementById('p-total').value = p.total || 0;
+            document.getElementById('p-good').value = p.good || 0;
+            document.getElementById('p-repair').value = p.repair || 0;
+            document.getElementById('p-bad').value = p.bad || 0;
             window.openModal('modal-product');
+            window.validateStockMath();
         };
 
-        window.deleteProduct = async (id) => {
-            if (!confirm("¿Deseas eliminar este registro?")) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id));
-                showToast("Equipo eliminado");
-            } catch(e) { showToast("Sin permisos para borrar", "error"); }
-        };
-
-        window.openLoanModal = () => {
-            const select = document.getElementById('l-product');
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Elige Equipo --</option>';
-            products.filter(p => p.good > 0).forEach(p => {
-                select.innerHTML += `<option value="${p.id}">${p.name} (${p.good} en stock)</option>`;
-            });
-            window.openModal('modal-loan');
-        };
-
-        const loanForm = document.getElementById('loan-form');
-        if (loanForm) {
-            loanForm.onsubmit = async (e) => {
-                e.preventDefault();
-                const pid = document.getElementById('l-product').value;
-                const qty = parseInt(document.getElementById('l-qty').value);
-                const p = products.find(x => x.id === pid);
-
-                if (!p || qty > p.good) return showToast("Stock insuficiente", "error");
-
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), {
-                        productId: pid, productName: p.name,
-                        borrowerName: document.getElementById('l-name').value,
-                        borrowerRUT: document.getElementById('l-rut').value,
-                        qty, isReturned: false, loanDate: new Date().toISOString()
-                    });
-
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', pid), {
-                        good: p.good - qty
-                    });
-
-                    window.closeModal('modal-loan');
-                    showToast("Salida emitida");
-                } catch(err) { showToast("Error en préstamo", "error"); }
+        window.handleCSVImport = async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                const lines = ev.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
+                const delimiter = lines[0].includes(";") ? ";" : ",";
+                const col = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+                let count = 0;
+                for (let line of lines.slice(1)) {
+                    const p = line.split(delimiter).map(x => x?.trim());
+                    if (!p[0]) continue;
+                    try {
+                        const good = parseInt(p[5]) || 0;
+                        await addDoc(col, { 
+                            name: p[0], code: p[1] || '', specs: p[2] || '', location: p[3] || 'BOD',
+                            total: parseInt(p[4]) || 0, good, repair: parseInt(p[6]) || 0, bad: parseInt(p[7]) || 0,
+                            available: good, updatedAt: new Date().toISOString() 
+                        });
+                        count++;
+                    } catch(err) {}
+                }
+                await logAction("Importación", `Subida masiva de ${count} equipos`);
+                showToast(`Se cargaron ${count} equipos`);
             };
-        }
-
-        window.processReturn = async (id) => {
-            const l = loans.find(x => x.id === id);
-            if (!l) return;
-            const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
-            const pSnap = await getDoc(pRef);
-            if (!pSnap.exists()) return;
-            const p = pSnap.data();
-
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', id), {
-                    isReturned: true, returnDate: new Date().toISOString()
-                });
-                await updateDoc(pRef, { good: p.good + l.qty });
-                showToast("Equipo devuelto a bodega");
-            } catch(err) { showToast("Error al procesar retorno", "error"); }
+            reader.readAsText(file);
         };
 
-        // --- RENDERIZADO UI ---
-        function renderInventory() {
-            const tbody = document.getElementById('inventory-table');
-            if (!tbody) return;
-            const searchInput = document.getElementById('search-inventory');
-            const search = searchInput ? searchInput.value.toLowerCase() : "";
-            const items = products.filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search));
-            
-            tbody.innerHTML = items.map(p => `
-                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
-                    <td class="px-6 py-5">
-                        <div class="font-black text-slate-800">${p.name}</div>
-                        <div class="text-[10px] text-slate-400 uppercase font-bold">${p.location}</div>
-                    </td>
-                    <td class="px-6 py-5 font-mono text-xs font-bold text-slate-500">${p.code}</td>
-                    <td class="px-6 py-5 text-center font-black text-slate-300">${p.total}</td>
-                    <td class="px-6 py-5 text-center bg-red-50/20">
-                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.good > 0 ? 'bg-inacap-red text-white' : 'bg-slate-200 text-slate-400'}">${p.good}</span>
-                    </td>
-                    <td class="px-6 py-5">
-                        <div class="flex gap-1 text-[9px] font-black">
-                            <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded">B:${p.good}</span>
-                            <span class="bg-amber-100 text-amber-600 px-2 py-0.5 rounded">R:${p.repair}</span>
-                            <span class="bg-red-100 text-inacap-red px-2 py-0.5 rounded">M:${p.bad}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-5 text-right">
-                        <div class="flex justify-end gap-2">
-                        ${userRole === 'admin' ? `
-                            <button onclick="window.editProduct('${p.id}')" class="text-slate-600 p-2 hover:bg-slate-100 rounded-lg transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="window.deleteProduct('${p.id}')" class="text-inacap-red p-2 hover:bg-red-50 rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        ` : '<i data-lucide="lock" class="w-4 h-4 text-slate-200"></i>'}
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function renderLoans() {
-            const tbody = document.getElementById('loans-table');
-            if (!tbody) return;
-            const sorted = loans.sort((a,b) => new Date(b.loanDate) - new Date(a.loanDate));
-            tbody.innerHTML = sorted.map(l => `
-                <tr class="hover:bg-slate-50 border-b border-slate-50 transition">
-                    <td class="px-6 py-4 font-black text-slate-800">${l.productName}</td>
-                    <td class="px-6 py-4">
-                        <div class="text-xs font-black text-slate-700">${l.borrowerName}</div>
-                        <div class="text-[10px] text-slate-400 font-bold">${l.borrowerRUT}</div>
-                    </td>
-                    <td class="px-6 py-4 text-[10px] font-bold text-slate-500">${new Date(l.loanDate).toLocaleDateString()}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black ${l.isReturned ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${l.isReturned ? 'BODEGA' : 'EN USO'}</span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        ${!l.isReturned ? `<button onclick="window.processReturn('${l.id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter hover:bg-slate-800 transition">Devolver</button>` : '<i data-lucide="check-circle" class="text-green-500 inline w-5 h-5"></i>'}
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function updateStats() {
-            const activeLoans = document.getElementById('stat-active-loans');
-            const returnsToday = document.getElementById('stat-returns-today');
-            const badStock = document.getElementById('stat-bad-stock');
-
-            if (activeLoans) activeLoans.textContent = loans.filter(l => !l.isReturned).length;
-            if (returnsToday) returnsToday.textContent = loans.filter(l => l.isReturned && new Date(l.returnDate).toDateString() === new Date().toDateString()).length;
-            if (badStock) badStock.textContent = products.reduce((s,p) => s + (p.bad || 0), 0);
-        }
-
-        function showToast(m, t="success") {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            const toastContent = document.getElementById('toast-content');
-            if (!toast || !toastMsg || !toastContent) return;
-
-            toastMsg.textContent = m;
-            toastContent.className = `px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border ${t === 'error' ? 'bg-inacap-red border-red-500' : 'bg-black border-slate-700'} text-white`;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
-        }
-
-        const searchInput = document.getElementById('search-inventory');
-        if (searchInput) {
-            searchInput.oninput = () => renderInventory();
-        }
-
-        setInterval(() => {
-            const el = document.getElementById('current-time-display');
-            if(el) el.textContent = new Date().toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'medium' });
-        }, 1000);
+        lucide.createIcons();
     </script>
 </body>
 </html>
