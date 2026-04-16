@@ -20,6 +20,8 @@
         .animate-pop { animation: pop 0.25s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
+        .bg-inacap-red { background-color: #e30613; }
+        .text-inacap-red { color: #e30613; }
     </style>
 </head>
 <body>
@@ -57,8 +59,8 @@
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#e30613] flex items-center justify-center font-black text-sm shadow-lg shadow-red-900/20" id="user-avatar">?</div>
                         <div class="overflow-hidden">
-                            <p class="font-bold text-sm truncate" id="display-user-role">Cargando...</p>
-                            <p class="text-[10px] text-slate-400 truncate" id="display-user-email">---</p>
+                            <p class="font-bold text-sm truncate" id="display-user-role">...</p>
+                            <p class="text-[10px] text-slate-400 truncate" id="display-user-email">...</p>
                         </div>
                     </div>
                 </div>
@@ -77,7 +79,7 @@
                             <h1 class="text-4xl font-black tracking-tighter"><span class="bg-[#e30613] px-3 py-1 rounded mr-1.5">I</span>NACAP</h1>
                         </div>
                         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="auth-title">Iniciar Sesión</h2>
-                        <p class="text-slate-500 mt-2 text-sm font-medium" id="auth-subtitle">Usa tus credenciales registradas</p>
+                        <p class="text-slate-500 mt-2 text-sm font-medium">Acceso a Bodega</p>
                     </div>
                     
                     <form id="login-form" class="space-y-4">
@@ -87,10 +89,10 @@
                         <button type="button" id="toggle-auth" class="w-full text-xs font-bold text-slate-400 hover:text-[#e30613] transition uppercase tracking-widest mt-4">¿No tienes cuenta? Regístrate</button>
                     </form>
 
-                    <div id="login-error" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-pop">
+                    <div id="login-error" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-pop text-center">
                         <p id="login-error-text" class="text-[11px] text-red-600 font-bold leading-relaxed"></p>
-                        <div id="uid-helper" class="hidden mt-3 pt-3 border-t border-red-200 text-center">
-                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Tu UID (Cópialo):</p>
+                        <div id="uid-helper" class="hidden mt-3 pt-3 border-t border-red-200">
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Copia tu UID para el Admin:</p>
                             <div class="flex gap-2">
                                 <input type="text" id="uid-input" readonly class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-[10px] font-mono outline-none text-center">
                                 <button type="button" onclick="window.copyUID()" class="bg-slate-900 text-white px-3 rounded-lg text-[10px] font-black">COPIAR</button>
@@ -100,6 +102,7 @@
                 </div>
             </section>
 
+            <!-- Main Auth Content -->
             <div id="auth-content" class="hidden flex-1 overflow-y-auto p-4 md:p-8">
                 <!-- Dashboard -->
                 <section id="tab-dashboard" class="tab-content active space-y-6">
@@ -115,7 +118,7 @@
                         </div>
                         <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bajas Técnicas</p>
-                            <h3 class="text-6xl font-black text-[#e30613] mt-2" id="stat-bad-stock">0</h3>
+                            <h3 class="text-6xl font-black text-inacap-red mt-2" id="stat-bad-stock">0</h3>
                         </div>
                     </div>
                 </section>
@@ -123,7 +126,7 @@
                 <!-- Inventory -->
                 <section id="tab-inventory" class="tab-content space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Inventario de Equipos</h2>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Inventario</h2>
                         <div class="flex gap-2 w-full md:w-auto">
                             <button id="admin-add-btn" onclick="window.openModal('modal-product')" class="hidden flex-1 md:flex-none btn-inacap text-xs">Nuevo</button>
                             <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden flex-1 md:flex-none bg-slate-200 px-6 py-3 rounded-xl font-bold text-xs uppercase">CSV</button>
@@ -137,6 +140,9 @@
                                 <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                 <input type="text" id="inventory-search" placeholder="Buscar por nombre, código o ubicación..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-red-500" oninput="window.renderInventory(1)">
                             </div>
+                            <select id="inventory-location-filter" class="bg-white border border-slate-200 px-4 py-3 rounded-xl text-xs font-bold outline-none" onchange="window.renderInventory(1)">
+                                <option value="all">Todas las ubicaciones</option>
+                            </select>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
@@ -153,8 +159,7 @@
                                 <tbody id="inventory-table" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
-                        <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="inventory-pagination">
-                        </div>
+                        <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="inventory-pagination"></div>
                     </div>
                 </section>
 
@@ -180,9 +185,20 @@
 
                 <!-- Loans -->
                 <section id="tab-loans" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Préstamos Activos</h2>
-                        <button onclick="window.openLoanModal()" class="btn-inacap text-xs">Nueva Salida</button>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Préstamos</h2>
+                        <div class="flex gap-3 items-center w-full md:w-auto">
+                            <select id="loan-month-filter" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold outline-none" onchange="window.renderLoans(1)">
+                                <option value="all">Todos los meses</option>
+                                <option value="0">Enero</option><option value="1">Febrero</option>
+                                <option value="2">Marzo</option><option value="3">Abril</option>
+                                <option value="4">Mayo</option><option value="5">Junio</option>
+                                <option value="6">Julio</option><option value="7">Agosto</option>
+                                <option value="8">Septiembre</option><option value="9">Octubre</option>
+                                <option value="10">Noviembre</option><option value="11">Diciembre</option>
+                            </select>
+                            <button onclick="window.openLoanModal()" class="btn-inacap text-xs flex-1 md:flex-none">Nueva Salida</button>
+                        </div>
                     </div>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                         <table class="w-full text-left text-sm">
@@ -197,12 +213,13 @@
                             </thead>
                             <tbody id="loans-table" class="divide-y divide-slate-100"></tbody>
                         </table>
+                        <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="loans-pagination"></div>
                     </div>
                 </section>
 
                 <!-- History -->
                 <section id="tab-history" class="tab-content space-y-6">
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Auditoría de Movimientos</h2>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Historial</h2>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
@@ -214,6 +231,7 @@
                             </thead>
                             <tbody id="history-table" class="divide-y divide-slate-100"></tbody>
                         </table>
+                        <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="history-pagination"></div>
                     </div>
                 </section>
             </div>
@@ -222,24 +240,24 @@
 
     <!-- Modales -->
     <div id="modal-product" class="modal p-4"><div class="bg-white p-8 rounded-[2.5rem] w-full max-w-2xl overflow-hidden animate-pop">
-        <h3 class="text-xl font-black mb-6">Ficha Técnica del Equipo</h3>
+        <h3 class="text-xl font-black mb-6">Ficha de Equipo</h3>
         <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-2">
             <input type="hidden" id="edit-product-id">
             <div class="md:col-span-2">
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Nombre</label>
-                <input type="text" id="p-name" required class="input-inacap" placeholder="Ej: Multimetro Digital">
+                <input type="text" id="p-name" required class="input-inacap" placeholder="Multímetro...">
             </div>
             <div>
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Código</label>
-                <input type="text" id="p-code" class="input-inacap" placeholder="INC-001">
+                <input type="text" id="p-code" class="input-inacap" placeholder="ACT-001">
             </div>
             <div>
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Ubicación</label>
-                <input type="text" id="p-location" required class="input-inacap" placeholder="Estante A-4">
+                <input type="text" id="p-location" required class="input-inacap" placeholder="Pasillo 1">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Especificaciones</label>
-                <textarea id="p-specs" class="input-inacap h-20 resize-none" placeholder="Detalles técnicos..."></textarea>
+                <textarea id="p-specs" class="input-inacap h-20 resize-none"></textarea>
             </div>
             <div class="md:col-span-2 bg-slate-50 p-6 rounded-[2rem] grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center">
@@ -261,51 +279,37 @@
                 <div id="stock-warning" class="col-span-full text-[10px] font-bold text-center mt-2"></div>
             </div>
             <div class="md:col-span-2 flex gap-3 pt-4">
-                <button type="submit" id="save-product-btn" class="flex-1 btn-inacap">Guardar Cambios</button>
+                <button type="submit" id="save-product-btn" class="flex-1 btn-inacap">Guardar</button>
                 <button type="button" onclick="window.closeModal('modal-product')" class="px-8 py-4 bg-slate-100 rounded-xl font-bold uppercase text-xs">Cerrar</button>
             </div>
         </form>
     </div></div>
 
-    <!-- Nuevo Modal de Retorno -->
     <div id="modal-return-state" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-md text-center animate-pop">
-        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i data-lucide="package-check" class="text-slate-900 w-8 h-8"></i>
-        </div>
-        <h3 class="text-xl font-black mb-2">Confirmar Retorno</h3>
-        <p class="text-slate-500 text-sm mb-8">¿En qué estado se encuentra el equipo que están devolviendo?</p>
+        <h3 class="text-xl font-black mb-6">Estado de Retorno</h3>
         <div class="space-y-3">
-            <button onclick="window.executeReturn('good')" class="w-full py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-green-600 transition flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> Llegó en Buen Estado
-            </button>
-            <button onclick="window.executeReturn('repair')" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-amber-600 transition flex items-center justify-center gap-2">
-                <i data-lucide="wrench" class="w-4 h-4"></i> Llegó para Reparar
-            </button>
-            <button onclick="window.executeReturn('bad')" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs hover:bg-red-700 transition flex items-center justify-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4"></i> Llegó Malo / Inservible
-            </button>
-            <button onclick="window.closeModal('modal-return-state')" class="w-full py-3 text-slate-400 font-bold uppercase text-[10px] mt-4 tracking-widest">Cancelar</button>
+            <button onclick="window.executeReturn('good')" class="w-full py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-xs">Llegó Bueno</button>
+            <button onclick="window.executeReturn('repair')" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-xs">Para Reparar</button>
+            <button onclick="window.executeReturn('bad')" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs">Llegó Malo</button>
+            <button onclick="window.closeModal('modal-return-state')" class="w-full py-3 text-slate-400 font-bold uppercase text-[10px]">Cancelar</button>
         </div>
     </div></div>
 
     <div id="modal-user-role" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg">
-        <h3 class="text-xl font-black mb-6">Habilitar Acceso</h3>
+        <h3 class="text-xl font-black mb-6">Habilitar Usuario</h3>
         <form id="user-role-form" class="space-y-4">
             <input type="text" id="u-uid" required class="input-inacap" placeholder="Pegar UID aquí">
-            <input type="email" id="u-email" required class="input-inacap" placeholder="Correo del usuario">
+            <input type="email" id="u-email" required class="input-inacap" placeholder="Correo">
             <select id="u-role" required class="input-inacap">
-                <option value="encargado">Encargado (Solo préstamos)</option>
-                <option value="admin">Administrador (Control total)</option>
+                <option value="encargado">Encargado</option>
+                <option value="admin">Administrador</option>
             </select>
-            <div class="flex gap-2">
-                <button type="submit" class="flex-1 btn-inacap">Habilitar</button>
-                <button type="button" onclick="window.closeModal('modal-user-role')" class="px-6 py-4 bg-slate-100 rounded-xl font-bold">Cerrar</button>
-            </div>
+            <button type="submit" class="w-full btn-inacap">Asignar Rol</button>
         </form>
     </div></div>
 
     <div id="modal-loan" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg">
-        <h3 class="text-xl font-black mb-6">Formulario de Salida</h3>
+        <h3 class="text-xl font-black mb-6">Nueva Salida</h3>
         <form id="loan-form" class="space-y-4">
             <select id="l-product" required class="input-inacap"></select>
             <div class="grid grid-cols-2 gap-4">
@@ -313,7 +317,7 @@
                 <input type="text" id="l-rut" required class="input-inacap" placeholder="RUT">
             </div>
             <input type="text" id="l-name" required class="input-inacap" placeholder="Nombre completo">
-            <button type="submit" class="w-full btn-inacap py-5 shadow-lg shadow-red-100">CONFIRMAR SALIDA</button>
+            <button type="submit" class="w-full btn-inacap">Confirmar</button>
         </form>
     </div></div>
 
@@ -326,7 +330,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAyY6-4Qc8Yhvpv0JV0X46jVIHSfOPQ44c",
@@ -343,54 +347,39 @@
         const db = getFirestore(app);
 
         let products = [], loans = [], logs = [], userProfile = null, isRegisterMode = false;
-        let currentPage = 1;
-        const itemsPerPage = 15;
+        let pInv = 1, pLoan = 1, pHist = 1;
+        const perPage = 15;
         let activeReturnId = null;
 
-        // --- AUTH ---
+        // --- AUTH LOGIC ---
         document.getElementById('toggle-auth').onclick = () => {
             isRegisterMode = !isRegisterMode;
             document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión';
-            document.getElementById('auth-subtitle').textContent = isRegisterMode ? 'Regístrate para solicitar acceso' : 'Usa tus credenciales registradas';
             document.getElementById('btn-login-submit').textContent = isRegisterMode ? 'REGISTRARSE' : 'INGRESAR';
-            document.getElementById('toggle-auth').textContent = isRegisterMode ? '¿Ya tienes cuenta? Ingresa' : '¿No tienes cuenta? Regístrate';
         };
 
         document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
+            const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value;
             const btn = document.getElementById('btn-login-submit');
-            const errorDiv = document.getElementById('login-error');
-            const errorText = document.getElementById('login-error-text');
-            const uidInput = document.getElementById('uid-input');
-            const uidHelper = document.getElementById('uid-helper');
-            
-            btn.disabled = true; btn.textContent = isRegisterMode ? "REGISTRANDO..." : "VERIFICANDO...";
-            errorDiv.classList.add('hidden');
-
+            btn.disabled = true; btn.textContent = "VERIFICANDO...";
             try {
                 let userCredential;
-                if (isRegisterMode) {
-                    userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                } else {
-                    userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                }
+                if (isRegisterMode) userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                else userCredential = await signInWithEmailAndPassword(auth, email, pass);
                 
                 const uid = userCredential.user.uid.trim();
-                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', uid);
-                const profileSnap = await getDoc(profileRef);
-                
+                const profileSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
                 if (!profileSnap.exists()) {
-                    uidInput.value = uid;
-                    uidHelper.classList.remove('hidden');
-                    throw new Error(isRegisterMode ? "¡Cuenta creada! Copia tu UID y entrégalo al administrador." : "Acceso denegado: Perfil no habilitado.");
+                    document.getElementById('uid-input').value = uid;
+                    document.getElementById('uid-helper').classList.remove('hidden');
+                    throw new Error("Su cuenta requiere habilitación del Administrador.");
                 }
             } catch (err) {
-                errorDiv.classList.remove('hidden');
-                errorText.textContent = err.message;
-                if (auth.currentUser) { uidInput.value = auth.currentUser.uid; uidHelper.classList.remove('hidden'); }
-                if (!isRegisterMode || !err.message.includes("¡Cuenta creada!")) signOut(auth);
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('login-error-text').textContent = err.message;
+                if (auth.currentUser) document.getElementById('uid-input').value = auth.currentUser.uid;
+                if (!err.message.includes("habilitación")) signOut(auth);
             } finally { btn.disabled = false; btn.textContent = isRegisterMode ? 'REGISTRARSE' : 'INGRESAR'; }
         };
 
@@ -398,12 +387,13 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
-                const snap = await getDoc(profileRef);
-                if (snap.exists()) {
-                    userProfile = { uid: user.uid, email: user.email, ...snap.data() };
-                    renderApp();
-                } else { signOut(auth); }
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid));
+                if (snap.exists()) { 
+                    userProfile = { uid: user.uid, email: user.email, ...snap.data() }; 
+                    renderApp(); 
+                } else { 
+                    signOut(auth); 
+                }
             } else {
                 document.getElementById('auth-content').classList.add('hidden');
                 document.getElementById('sidebar').classList.add('hidden');
@@ -426,107 +416,230 @@
             document.getElementById('admin-import-btn').classList.toggle('hidden', !isAdmin);
             document.getElementById('nav-users').classList.toggle('hidden', !isAdmin);
 
+            // Listeners
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
                 products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                window.renderInventory(currentPage); 
-                updateStats();
+                updateLocationFilter();
+                window.renderInventory(1); updateStats();
             });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), (snap) => {
                 loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderLoans(); 
-                updateStats();
+                window.renderLoans(1); updateStats();
             });
-            if (isAdmin) {
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snap) => {
-                    renderUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-                });
-            }
+            if (isAdmin) onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snap) => {
+                renderUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'), (snap) => {
                 logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderHistory();
+                window.renderHistory(1);
             });
             lucide.createIcons();
         }
 
         async function logAction(action, detail) {
-            try { 
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'), {
-                    timestamp: new Date().toISOString(), userEmail: userProfile.email, action, detail
-                }); 
-            } catch(e) {}
+            try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'), {
+                timestamp: new Date().toISOString(), userEmail: userProfile.email, action, detail
+            }); } catch(e) {}
         }
 
         // --- INVENTORY ---
+        function updateLocationFilter() {
+            const select = document.getElementById('inventory-location-filter');
+            const locations = [...new Set(products.map(p => p.location).filter(l => l))];
+            select.innerHTML = '<option value="all">Todas las ubicaciones</option>' + 
+                locations.map(l => `<option value="${l}">${l}</option>`).join('');
+        }
+
         window.renderInventory = (page = 1) => {
-            currentPage = page;
-            const tbody = document.getElementById('inventory-table');
-            const paginator = document.getElementById('inventory-pagination');
-            if(!tbody) return;
-
+            pInv = page;
             const search = document.getElementById('inventory-search').value.toLowerCase();
+            const loc = document.getElementById('inventory-location-filter').value;
             const filtered = products.filter(p => 
-                p.name.toLowerCase().includes(search) || 
-                (p.code && p.code.toLowerCase().includes(search)) ||
-                (p.location && p.location.toLowerCase().includes(search))
+                (p.name.toLowerCase().includes(search) || (p.code && p.code.toLowerCase().includes(search))) &&
+                (loc === 'all' || p.location === loc)
             );
+            const total = Math.ceil(filtered.length / perPage) || 1;
+            const start = (page - 1) * perPage;
+            const paginated = filtered.slice(start, start + perPage);
 
-            const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-            const start = (currentPage - 1) * itemsPerPage;
-            const paginated = filtered.slice(start, start + itemsPerPage);
-
-            tbody.innerHTML = paginated.map(p => `
-                <tr class="hover:bg-slate-50 border-b border-slate-100">
+            document.getElementById('inventory-table').innerHTML = paginated.map(p => `
+                <tr class="hover:bg-slate-50 border-b">
                     <td class="px-6 py-4">
                         <div class="font-bold text-slate-800">${p.name}</div>
-                        <div class="text-[10px] text-slate-400 font-medium">${p.specs || 'Sin especificaciones'}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${p.specs || 'N/A'}</div>
                     </td>
                     <td class="px-4 py-4 font-mono text-xs font-bold text-slate-500">${p.code || '---'}</td>
-                    <td class="px-4 py-4 text-center">
-                        <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                            <i data-lucide="map-pin" class="w-2.5 h-2.5"></i> ${p.location || 'BOD'}
-                        </span>
-                    </td>
+                    <td class="px-4 py-4 text-center"><span class="px-2 py-1 bg-slate-100 rounded text-[9px] font-black uppercase text-slate-500">${p.location || 'BOD'}</span></td>
                     <td class="px-4 py-4 text-center">
                         <div class="flex gap-1 justify-center">
                             <span class="status-badge bg-green-50 text-green-700" title="Buenos">${p.good || 0}</span>
-                            <span class="status-badge bg-amber-50 text-amber-700" title="Reparables">${p.repair || 0}</span>
-                            <span class="status-badge bg-red-50 text-red-700" title="Malos">${p.bad || 0}</span>
+                            <span class="status-badge bg-amber-50 text-amber-700" title="Reparar">${p.repair || 0}</span>
+                            <span class="status-badge bg-red-50 text-red-700" title="Baja">${p.bad || 0}</span>
                         </div>
                     </td>
                     <td class="px-4 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.available > 0 ? 'bg-inacap-red text-white' : 'bg-slate-200 text-slate-400'}">${p.available}</span>
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.available > 0 ? 'bg-inacap-red text-white' : 'bg-slate-200 text-slate-400'}">${p.available || 0}</span>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        ${userProfile.role === 'admin' ? `<button onclick="window.editProduct('${p.id}')" class="text-slate-400 hover:text-black transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : ''}
+                    <td class="px-6 py-4 text-right flex justify-end gap-2">
+                        ${userProfile.role === 'admin' ? `
+                            <button onclick="window.editProduct('${p.id}')" class="text-slate-400 hover:text-black"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="window.deleteProduct('${p.id}')" class="text-red-300 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ` : ''}
                     </td>
                 </tr>
             `).join('');
 
-            paginator.innerHTML = `
-                <p class="text-xs font-bold text-slate-400 uppercase">Mostrando ${paginated.length} de ${filtered.length}</p>
+            document.getElementById('inventory-pagination').innerHTML = `
+                <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pInv} de ${total}</p>
                 <div class="flex gap-2">
-                    <button onclick="window.renderInventory(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30">ANTERIOR</button>
-                    <button onclick="window.renderInventory(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''} class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold disabled:opacity-30">SIGUIENTE</button>
+                    <button onclick="window.renderInventory(${page - 1})" ${page === 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">ANT</button>
+                    <button onclick="window.renderInventory(${page + 1})" ${page >= total ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">SIG</button>
                 </div>
             `;
             lucide.createIcons();
         };
 
+        window.deleteProduct = async (id) => {
+            const p = products.find(x => x.id === id);
+            if (confirm(`¿Eliminar definitivamente "${p.name}"?`)) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', id));
+                await logAction("Eliminado", `Equipo borrado: ${p.name}`);
+                showToast("Producto eliminado");
+            }
+        };
+
+        // --- LOANS ---
+        window.renderLoans = (page = 1) => {
+            pLoan = page;
+            const month = document.getElementById('loan-month-filter').value;
+            const filtered = loans.filter(l => month === 'all' || new Date(l.loanDate).getMonth().toString() === month).sort((a,b) => new Date(b.loanDate) - new Date(a.loanDate));
+            const total = Math.ceil(filtered.length / perPage) || 1;
+            const start = (page - 1) * perPage;
+            const paginated = filtered.slice(start, start + perPage);
+
+            document.getElementById('loans-table').innerHTML = paginated.map(l => `
+                <tr class="border-b hover:bg-slate-50 transition">
+                    <td class="px-8 py-4">
+                        <div class="font-bold text-slate-800">${l.productName}</div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">CANT: ${l.qty}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs font-bold text-slate-700">${l.borrowerName}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${l.borrowerRUT}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="text-[10px] font-black">${new Date(l.loanDate).toLocaleDateString()}</div>
+                        <div class="text-[9px] text-slate-400 font-bold">${new Date(l.loanDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        ${l.isReturned ? `
+                            <div class="text-[10px] font-black text-green-600">${new Date(l.returnDate).toLocaleDateString()}</div>
+                            <div class="text-[9px] text-green-500 font-bold">${new Date(l.returnDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                        ` : '<span class="text-[9px] font-black text-slate-300 italic">PENDIENTE</span>'}
+                    </td>
+                    <td class="px-8 py-4 text-right flex justify-end gap-2">
+                        ${!l.isReturned ? `<button onclick="window.openReturnModal('${l.id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Retornar</button>` : `<span class="status-badge ${l.returnStatus === 'good' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} uppercase">${l.returnStatus === 'good' ? 'Bueno' : l.returnStatus === 'repair' ? 'Técnico' : 'Malo'}</span>`}
+                        ${userProfile.role === 'admin' ? `<button onclick="window.deleteLoan('${l.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('loans-pagination').innerHTML = `
+                <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pLoan} de ${total}</p>
+                <div class="flex gap-2">
+                    <button onclick="window.renderLoans(${page - 1})" ${page === 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">ANT</button>
+                    <button onclick="window.renderLoans(${page + 1})" ${page >= total ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">SIG</button>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        window.openReturnModal = (id) => { activeReturnId = id; window.openModal('modal-return-state'); };
+
+        window.executeReturn = async (state) => {
+            const l = loans.find(x => x.id === activeReturnId);
+            const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
+            const pSnap = await getDoc(pRef);
+            const pData = pSnap.data();
+            let update = {};
+            if (state === 'good') update = { available: (pData.available||0) + l.qty, good: (pData.good||0) + l.qty };
+            else if (state === 'repair') update = { repair: (pData.repair||0) + l.qty };
+            else update = { bad: (pData.bad||0) + l.qty };
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', activeReturnId), { isReturned: true, returnDate: new Date().toISOString(), returnStatus: state });
+            await updateDoc(pRef, update);
+            await logAction("Retorno", `Devuelto: ${l.qty}x ${l.productName} (${state})`);
+            window.closeModal('modal-return-state');
+            showToast("Retorno registrado");
+        };
+
+        window.deleteLoan = async (id) => {
+            if (confirm("¿Eliminar registro? Esto no afecta el stock actual.")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', id));
+                showToast("Registro eliminado");
+            }
+        };
+
+        // --- HISTORY ---
+        window.renderHistory = (page = 1) => {
+            pHist = page;
+            const sorted = logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const total = Math.ceil(sorted.length / perPage) || 1;
+            const start = (page - 1) * perPage;
+            const paginated = sorted.slice(start, start + perPage);
+            document.getElementById('history-table').innerHTML = paginated.map(l => `
+                <tr class="border-b text-xs">
+                    <td class="px-8 py-4">
+                        <div class="font-bold text-slate-800">${new Date(l.timestamp).toLocaleDateString()}</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-black">${new Date(l.timestamp).toLocaleTimeString()}</div>
+                    </td>
+                    <td class="px-6 py-4 font-bold text-slate-700">${l.userEmail.split('@')[0]}</td>
+                    <td class="px-8 py-4 font-medium text-slate-500">${l.detail || l.action}</td>
+                </tr>
+            `).join('');
+            document.getElementById('history-pagination').innerHTML = `
+                <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pHist} de ${total}</p>
+                <div class="flex gap-2">
+                    <button onclick="window.renderHistory(${page - 1})" ${page === 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">ANT</button>
+                    <button onclick="window.renderHistory(${page + 1})" ${page >= total ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">SIG</button>
+                </div>
+            `;
+        };
+
+        // --- USERS ---
+        document.getElementById('user-role-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const uid = document.getElementById('u-uid').value.trim();
+            const email = document.getElementById('u-email').value;
+            const role = document.getElementById('u-role').value;
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), { email, role });
+            showToast("Usuario habilitado"); window.closeModal('modal-user-role');
+        };
+
+        function renderUsers(list) {
+            document.getElementById('users-table').innerHTML = list.map(u => `
+                <tr class="border-b">
+                    <td class="px-8 py-4 text-xs font-bold">${u.email}</td>
+                    <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${u.role === 'admin' ? 'bg-black text-white' : 'bg-slate-100 text-slate-500'}">${u.role}</span></td>
+                    <td class="px-8 py-4 text-right">
+                        ${u.id !== userProfile.uid ? `<button onclick="window.deleteUserRole('${u.id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.deleteUserRole = async (uid) => {
+            if (confirm("¿Revocar acceso?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
+        };
+
+        // --- UTILS & FORM HANDLERS ---
         window.validateStockMath = () => {
             const total = parseInt(document.getElementById('p-total').value) || 0;
-            const good = parseInt(document.getElementById('p-good').value) || 0;
-            const rep = parseInt(document.getElementById('p-repair').value) || 0;
-            const bad = parseInt(document.getElementById('p-bad').value) || 0;
-            const warn = document.getElementById('stock-warning');
+            const sum = (parseInt(document.getElementById('p-good').value) || 0) + (parseInt(document.getElementById('p-repair').value) || 0) + (parseInt(document.getElementById('p-bad').value) || 0);
             const btn = document.getElementById('save-product-btn');
-            
-            const sum = good + rep + bad;
-            if (total > 0 && sum === total) {
-                warn.textContent = "✔ Balance Correcto"; warn.className = "text-[10px] text-green-500 font-bold"; btn.disabled = false;
-            } else {
-                warn.textContent = total > sum ? `Faltan ${total - sum} unidades` : `Exceso de ${sum - total} unidades`;
-                warn.className = "text-[10px] text-red-500 font-bold"; btn.disabled = true;
-            }
+            const warn = document.getElementById('stock-warning');
+            if (total > 0 && sum === total) { warn.textContent = "✔ Balance Correcto"; warn.className = "text-green-500 font-bold text-[10px]"; btn.disabled = false; }
+            else { warn.textContent = total > sum ? `Faltan ${total-sum}` : `Exceso ${sum-total}`; warn.className = "text-red-500 font-bold text-[10px]"; btn.disabled = true; }
         };
 
         document.getElementById('product-form').onsubmit = async (e) => {
@@ -542,172 +655,48 @@
                 available: parseInt(document.getElementById('p-good').value),
                 updatedAt: new Date().toISOString()
             };
-            try {
-                const col = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-                if (id) await updateDoc(doc(col, id), data); else await addDoc(col, data);
-                window.closeModal('modal-product'); showToast("Inventario Actualizado");
-            } catch(e) { showToast("Error al guardar", "error"); }
+            const col = collection(db, 'artifacts', appId, 'public', 'data', 'products');
+            if (id) await updateDoc(doc(col, id), data); else await addDoc(col, data);
+            window.closeModal('modal-product'); showToast("Inventario guardado");
         };
 
-        // --- LOANS & RETURNS ---
         window.openLoanModal = () => {
-            const s = document.getElementById('l-product');
-            s.innerHTML = products.filter(p => p.available > 0).map(p => `<option value="${p.id}">${p.name} (Libres: ${p.available})</option>`).join('');
+            document.getElementById('l-product').innerHTML = products.filter(p => p.available > 0).map(p => `<option value="${p.id}">${p.name} (${p.available})</option>`).join('');
             window.openModal('modal-loan');
         };
 
         document.getElementById('loan-form').onsubmit = async (e) => {
             e.preventDefault();
-            const pid = document.getElementById('l-product').value;
-            const qty = parseInt(document.getElementById('l-qty').value);
-            const p = products.find(x => x.id === pid);
-            if (!p || qty > p.available) return showToast("Stock insuficiente", "error");
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), {
-                    productId: pid, productName: p.name, borrowerName: document.getElementById('l-name').value,
-                    borrowerRUT: document.getElementById('l-rut').value, qty, isReturned: false, loanDate: new Date().toISOString()
-                });
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', pid), { 
-                    available: p.available - qty,
-                    good: p.good - qty
-                });
-                await logAction("Préstamo", `Entregado: ${qty}x ${p.name} a ${document.getElementById('l-name').value}`);
-                window.closeModal('modal-loan'); showToast("Salida Registrada");
-            } catch(e) { showToast("Error de conexión", "error"); }
+            const pid = document.getElementById('l-product').value, qty = parseInt(document.getElementById('l-qty').value), p = products.find(x => x.id === pid);
+            if (qty > p.available) return;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'loans'), { productId: pid, productName: p.name, borrowerName: document.getElementById('l-name').value, borrowerRUT: document.getElementById('l-rut').value, qty, isReturned: false, loanDate: new Date().toISOString() });
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'products', pid), { available: p.available - qty, good: p.good - qty });
+            window.closeModal('modal-loan'); showToast("Préstamo registrado");
         };
 
-        window.openReturnModal = (id) => {
-            activeReturnId = id;
-            window.openModal('modal-return-state');
+        window.editProduct = (id) => {
+            const p = products.find(x => x.id === id);
+            document.getElementById('edit-product-id').value = p.id;
+            document.getElementById('p-name').value = p.name;
+            document.getElementById('p-total').value = p.total;
+            document.getElementById('p-good').value = p.good;
+            document.getElementById('p-repair').value = p.repair;
+            document.getElementById('p-bad').value = p.bad;
+            document.getElementById('p-location').value = p.location || '';
+            document.getElementById('p-specs').value = p.specs || '';
+            document.getElementById('p-code').value = p.code || '';
+            window.openModal('modal-product'); window.validateStockMath();
         };
 
-        window.executeReturn = async (state) => {
-            const l = loans.find(x => x.id === activeReturnId);
-            if(!l) return;
-            const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
-            try {
-                const pSnap = await getDoc(pRef);
-                const pData = pSnap.data();
-                const now = new Date().toISOString();
-                
-                let productUpdate = {};
-                if (state === 'good') {
-                    productUpdate = { 
-                        available: (pData.available || 0) + l.qty,
-                        good: (pData.good || 0) + l.qty 
-                    };
-                } else if (state === 'repair') {
-                    productUpdate = { repair: (pData.repair || 0) + l.qty };
-                } else {
-                    productUpdate = { bad: (pData.bad || 0) + l.qty };
-                }
-
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', activeReturnId), { 
-                    isReturned: true, 
-                    returnDate: now,
-                    returnStatus: state
-                });
-                
-                await updateDoc(pRef, productUpdate);
-                
-                const statusLabels = { 'good': 'Buen Estado', 'repair': 'Para Reparar', 'bad': 'Mal Estado' };
-                await logAction("Retorno", `Devolución: ${l.qty}x ${l.productName} (${statusLabels[state]}) por ${l.borrowerName}`);
-                
-                window.closeModal('modal-return-state');
-                showToast("Retorno registrado con éxito");
-            } catch(e) { showToast("Error al procesar retorno", "error"); }
-        };
-
-        function renderLoans() {
-            const tbody = document.getElementById('loans-table');
-            if(!tbody) return;
-            tbody.innerHTML = loans.map(l => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                    <td class="px-8 py-4 font-bold text-slate-800">${l.productName}</td>
-                    <td class="px-6 py-4">
-                        <div class="text-xs font-bold text-slate-800">${l.borrowerName}</div>
-                        <div class="text-[10px] text-slate-400 font-bold">${l.borrowerRUT}</div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="text-[11px] font-black text-slate-600">${new Date(l.loanDate).toLocaleDateString()}</div>
-                        <div class="text-[10px] text-slate-400 font-bold uppercase">${new Date(l.loanDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        ${l.isReturned ? `
-                            <div class="text-[11px] font-black text-green-600">${new Date(l.returnDate).toLocaleDateString()}</div>
-                            <div class="text-[10px] text-green-500 font-bold uppercase">${new Date(l.returnDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                        ` : '<span class="text-[9px] font-black text-slate-300">PENDIENTE</span>'}
-                    </td>
-                    <td class="px-8 py-4 text-right">
-                        ${!l.isReturned ? `<button onclick="window.openReturnModal('${l.id}')" class="bg-black text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-slate-800">Retornar</button>` : `<span class="status-badge ${l.returnStatus === 'good' ? 'bg-green-100 text-green-700' : l.returnStatus === 'repair' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'} uppercase">${l.returnStatus || 'Listo'}</span>`}
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        // --- HISTORY ---
-        function renderHistory() {
-            const tbody = document.getElementById('history-table');
-            if(!tbody) return;
-            tbody.innerHTML = logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 25).map(l => `
-                <tr class="border-b text-xs">
-                    <td class="px-8 py-4 text-slate-400 font-medium">
-                        ${new Date(l.timestamp).toLocaleDateString()} ${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </td>
-                    <td class="px-6 py-4 font-bold text-slate-700">${l.userEmail.split('@')[0]}</td>
-                    <td class="px-8 py-4 font-medium text-slate-500">${l.detail || l.action}</td>
-                </tr>
-            `).join('');
-        }
-
-        // --- USERS ---
-        document.getElementById('user-role-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const uid = document.getElementById('u-uid').value.trim();
-            const email = document.getElementById('u-email').value;
-            const role = document.getElementById('u-role').value;
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), { email, role });
-                showToast("Usuario habilitado"); window.closeModal('modal-user-role');
-            } catch(e) { showToast("Error al guardar", "error"); }
-        };
-
-        function renderUsers(list) {
-            const tbody = document.getElementById('users-table');
-            tbody.innerHTML = list.map(u => `
-                <tr class="border-b">
-                    <td class="px-8 py-4 text-xs font-bold text-slate-700">${u.email}</td>
-                    <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${u.role === 'admin' ? 'bg-black text-white' : 'bg-slate-100 text-slate-500'}">${u.role}</span></td>
-                    <td class="px-8 py-4 text-right">
-                        ${u.id !== userProfile.uid ? `<button onclick="window.deleteUserRole('${u.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        window.deleteUserRole = async (uid) => {
-            if (confirm("¿Revocar acceso?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
-                showToast("Acceso revocado");
-            }
-        };
-
-        // --- UTILS ---
         function updateStats() {
-            const active = document.getElementById('stat-active-loans');
-            const returns = document.getElementById('stat-returns-today');
-            const bad = document.getElementById('stat-bad-stock');
-            if(active) active.textContent = loans.filter(l => !l.isReturned).length;
-            if(returns) returns.textContent = loans.filter(l => l.isReturned && new Date(l.returnDate).toDateString() === new Date().toDateString()).length;
-            if(bad) bad.textContent = products.reduce((s,p) => s + (parseInt(p.bad) || 0), 0);
+            document.getElementById('stat-active-loans').textContent = loans.filter(l => !l.isReturned).length;
+            document.getElementById('stat-returns-today').textContent = loans.filter(l => l.isReturned && new Date(l.returnDate).toDateString() === new Date().toDateString()).length;
+            document.getElementById('stat-bad-stock').textContent = products.reduce((s,p) => s + (parseInt(p.bad) || 0), 0);
         }
 
         window.switchTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            const target = document.getElementById('tab-' + id);
-            if(target) target.classList.add('active');
+            document.getElementById('tab-' + id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => {
                 b.classList.remove('bg-slate-800', 'text-white');
                 if(b.dataset.tab === id) b.classList.add('bg-slate-800', 'text-white');
@@ -717,32 +706,18 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        function showToast(m, t = "success") {
-            const toast = document.getElementById('toast'), msg = document.getElementById('toast-message'), content = document.getElementById('toast-content');
+        function showToast(m) {
+            const toast = document.getElementById('toast'), msg = document.getElementById('toast-message');
             msg.textContent = m;
-            content.className = `bg-${t === 'success' ? 'slate-900' : 'red-600'} text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-slate-700`;
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        window.copyUID = () => {
-            const input = document.getElementById('uid-input');
-            input.select(); document.execCommand('copy'); showToast("UID copiado");
-        };
-
-        window.editProduct = (id) => {
-            const p = products.find(x => x.id === id);
-            document.getElementById('edit-product-id').value = p.id;
-            document.getElementById('p-name').value = p.name;
-            document.getElementById('p-code').value = p.code || '';
-            document.getElementById('p-location').value = p.location || '';
-            document.getElementById('p-specs').value = p.specs || '';
-            document.getElementById('p-total').value = p.total || 0;
-            document.getElementById('p-good').value = p.good || 0;
-            document.getElementById('p-repair').value = p.repair || 0;
-            document.getElementById('p-bad').value = p.bad || 0;
-            window.openModal('modal-product');
-            window.validateStockMath();
+        window.copyUID = () => { 
+            const inp = document.getElementById('uid-input');
+            inp.select(); 
+            document.execCommand('copy'); 
+            showToast("UID copiado"); 
         };
 
         window.handleCSVImport = async (e) => {
@@ -752,22 +727,12 @@
                 const lines = ev.target.result.split(/\r?\n/).filter(line => line.trim() !== "");
                 const delimiter = lines[0].includes(";") ? ";" : ",";
                 const col = collection(db, 'artifacts', appId, 'public', 'data', 'products');
-                let count = 0;
                 for (let line of lines.slice(1)) {
                     const p = line.split(delimiter).map(x => x?.trim());
                     if (!p[0]) continue;
-                    try {
-                        const good = parseInt(p[5]) || 0;
-                        await addDoc(col, { 
-                            name: p[0], code: p[1] || '', specs: p[2] || '', location: p[3] || 'BOD',
-                            total: parseInt(p[4]) || 0, good, repair: parseInt(p[6]) || 0, bad: parseInt(p[7]) || 0,
-                            available: good, updatedAt: new Date().toISOString() 
-                        });
-                        count++;
-                    } catch(err) {}
+                    await addDoc(col, { name: p[0], code: p[1]||'', specs: p[2]||'', location: p[3]||'BOD', total: parseInt(p[4])||0, good: parseInt(p[5])||0, repair: parseInt(p[6])||0, bad: parseInt(p[7])||0, available: parseInt(p[5])||0 });
                 }
-                await logAction("Importación", `Subida masiva de ${count} equipos`);
-                showToast(`Se cargaron ${count} equipos`);
+                showToast("CSV Cargado");
             };
             reader.readAsText(file);
         };
