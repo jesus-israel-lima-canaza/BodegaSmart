@@ -20,11 +20,45 @@
         .animate-pop { animation: pop 0.25s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .status-badge { padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
-        .bg-inacap-red { background-color: #e30613; }
-        .text-inacap-red { color: #e30613; }
+        
+        /* Sidebar Móvil DESDE LA DERECHA */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                height: 100vh;
+                z-index: 50;
+                transform: translateX(100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-left: 1px solid rgba(255,255,255,0.1);
+                display: none;
+            }
+            #sidebar.mobile-open {
+                transform: translateX(0);
+                display: flex !important;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 40;
+                backdrop-filter: blur(2px);
+            }
+            .sidebar-overlay.active { display: block; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Overlay para cerrar el menú en móvil -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="window.toggleMobileMenu()"></div>
+
+    <!-- Botón de Menú para Celulares -->
+    <button id="mobile-menu-toggle" class="fixed top-4 right-4 z-[60] p-4 bg-slate-900 text-white rounded-2xl md:hidden hidden shadow-2xl border border-slate-700" onclick="window.toggleMobileMenu()">
+        <i data-lucide="menu" id="menu-icon" class="w-5 h-5"></i>
+    </button>
 
     <div id="app" class="min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
@@ -59,7 +93,7 @@
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-[#e30613] flex items-center justify-center font-black text-sm shadow-lg shadow-red-900/20" id="user-avatar">?</div>
                         <div class="overflow-hidden">
-                            <p class="font-bold text-sm truncate" id="display-user-role">...</p>
+                            <p class="font-bold text-sm truncate" id="display-user-role">Cargando...</p>
                             <p class="text-[10px] text-slate-400 truncate" id="display-user-email">...</p>
                         </div>
                     </div>
@@ -79,7 +113,7 @@
                             <h1 class="text-4xl font-black tracking-tighter"><span class="bg-[#e30613] px-3 py-1 rounded mr-1.5">I</span>NACAP</h1>
                         </div>
                         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight" id="auth-title">Iniciar Sesión</h2>
-                        <p class="text-slate-500 mt-2 text-sm font-medium">Acceso a Bodega</p>
+                        <p class="text-slate-500 mt-2 text-sm font-medium">Gestión de Bodega Inteligente</p>
                     </div>
                     
                     <form id="login-form" class="space-y-4">
@@ -92,7 +126,7 @@
                     <div id="login-error" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-pop text-center">
                         <p id="login-error-text" class="text-[11px] text-red-600 font-bold leading-relaxed"></p>
                         <div id="uid-helper" class="hidden mt-3 pt-3 border-t border-red-200">
-                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Copia tu UID para el Admin:</p>
+                            <p class="text-[9px] font-black text-slate-400 uppercase mb-2 text-center">Tu UID para el Admin:</p>
                             <div class="flex gap-2">
                                 <input type="text" id="uid-input" readonly class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-[10px] font-mono outline-none text-center">
                                 <button type="button" onclick="window.copyUID()" class="bg-slate-900 text-white px-3 rounded-lg text-[10px] font-black">COPIAR</button>
@@ -118,7 +152,7 @@
                         </div>
                         <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bajas Técnicas</p>
-                            <h3 class="text-6xl font-black text-inacap-red mt-2" id="stat-bad-stock">0</h3>
+                            <h3 class="text-6xl font-black text-[#e30613] mt-2" id="stat-bad-stock">0</h3>
                         </div>
                     </div>
                 </section>
@@ -129,7 +163,7 @@
                         <h2 class="text-3xl font-black text-slate-900 tracking-tight">Inventario</h2>
                         <div class="flex gap-2 w-full md:w-auto">
                             <button id="admin-add-btn" onclick="window.openModal('modal-product')" class="hidden flex-1 md:flex-none btn-inacap text-xs">Nuevo</button>
-                            <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden flex-1 md:flex-none bg-slate-200 px-6 py-3 rounded-xl font-bold text-xs uppercase">CSV</button>
+                            <button id="admin-import-btn" onclick="document.getElementById('csv-import').click()" class="hidden flex-1 md:flex-none bg-slate-200 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">Importar CSV</button>
                             <input type="file" id="csv-import" class="hidden" accept=".csv" onchange="window.handleCSVImport(event)">
                         </div>
                     </div>
@@ -138,14 +172,14 @@
                         <div class="p-4 bg-slate-50 border-b flex flex-col md:flex-row gap-4">
                             <div class="flex-1 relative">
                                 <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="text" id="inventory-search" placeholder="Buscar por nombre, código o ubicación..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-red-500" oninput="window.renderInventory(1)">
+                                <input type="text" id="inventory-search" placeholder="Nombre, Código o Ubicación..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-red-500" oninput="window.renderInventory(1)">
                             </div>
                             <select id="inventory-location-filter" class="bg-white border border-slate-200 px-4 py-3 rounded-xl text-xs font-bold outline-none" onchange="window.renderInventory(1)">
                                 <option value="all">Todas las ubicaciones</option>
                             </select>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
+                            <table class="w-full text-left text-sm min-w-[900px]">
                                 <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
                                     <tr>
                                         <th class="px-6 py-5">Equipo / Especificaciones</th>
@@ -186,7 +220,7 @@
                 <!-- Loans -->
                 <section id="tab-loans" class="tab-content space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Préstamos</h2>
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Salidas y Retornos</h2>
                         <div class="flex gap-3 items-center w-full md:w-auto">
                             <select id="loan-month-filter" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold outline-none" onchange="window.renderLoans(1)">
                                 <option value="all">Todos los meses</option>
@@ -201,25 +235,27 @@
                         </div>
                     </div>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
-                                <tr>
-                                    <th class="px-8 py-5">Equipo</th>
-                                    <th class="px-6 py-5">Solicitante</th>
-                                    <th class="px-6 py-5 text-center">Salida</th>
-                                    <th class="px-6 py-5 text-center">Retorno</th>
-                                    <th class="px-8 py-5 text-right">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="loans-table" class="divide-y divide-slate-100"></tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm min-w-[800px]">
+                                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
+                                    <tr>
+                                        <th class="px-8 py-5">Equipo</th>
+                                        <th class="px-6 py-5">Solicitante</th>
+                                        <th class="px-6 py-5 text-center">Salida</th>
+                                        <th class="px-6 py-5 text-center">Retorno</th>
+                                        <th class="px-8 py-5 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loans-table" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
                         <div class="p-6 bg-slate-50 border-t flex justify-between items-center" id="loans-pagination"></div>
                     </div>
                 </section>
 
                 <!-- History -->
                 <section id="tab-history" class="tab-content space-y-6">
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Historial</h2>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Auditoría</h2>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black">
@@ -245,15 +281,15 @@
             <input type="hidden" id="edit-product-id">
             <div class="md:col-span-2">
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Nombre</label>
-                <input type="text" id="p-name" required class="input-inacap" placeholder="Multímetro...">
+                <input type="text" id="p-name" required class="input-inacap" placeholder="Ej: Laptop HP">
             </div>
             <div>
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Código</label>
-                <input type="text" id="p-code" class="input-inacap" placeholder="ACT-001">
+                <input type="text" id="p-code" class="input-inacap" placeholder="C-001">
             </div>
             <div>
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Ubicación</label>
-                <input type="text" id="p-location" required class="input-inacap" placeholder="Pasillo 1">
+                <input type="text" id="p-location" required class="input-inacap" placeholder="Estante B-1">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Especificaciones</label>
@@ -279,7 +315,7 @@
                 <div id="stock-warning" class="col-span-full text-[10px] font-bold text-center mt-2"></div>
             </div>
             <div class="md:col-span-2 flex gap-3 pt-4">
-                <button type="submit" id="save-product-btn" class="flex-1 btn-inacap">Guardar</button>
+                <button type="submit" id="save-product-btn" class="flex-1 btn-inacap">Guardar Cambios</button>
                 <button type="button" onclick="window.closeModal('modal-product')" class="px-8 py-4 bg-slate-100 rounded-xl font-bold uppercase text-xs">Cerrar</button>
             </div>
         </form>
@@ -287,24 +323,25 @@
 
     <div id="modal-return-state" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-md text-center animate-pop">
         <h3 class="text-xl font-black mb-6">Estado de Retorno</h3>
+        <p class="text-slate-500 text-sm mb-8">¿En qué estado están devolviendo el equipo?</p>
         <div class="space-y-3">
-            <button onclick="window.executeReturn('good')" class="w-full py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-xs">Llegó Bueno</button>
-            <button onclick="window.executeReturn('repair')" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-xs">Para Reparar</button>
-            <button onclick="window.executeReturn('bad')" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs">Llegó Malo</button>
-            <button onclick="window.closeModal('modal-return-state')" class="w-full py-3 text-slate-400 font-bold uppercase text-[10px]">Cancelar</button>
+            <button onclick="window.executeReturn('good')" class="w-full py-4 bg-green-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-green-600 transition">Llegó Impecable</button>
+            <button onclick="window.executeReturn('repair')" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-black uppercase text-xs hover:bg-amber-600 transition">Requiere Revisión Técnico</button>
+            <button onclick="window.executeReturn('bad')" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs hover:bg-red-700 transition">Dañado / Inservible</button>
+            <button onclick="window.closeModal('modal-return-state')" class="w-full py-3 text-slate-400 font-bold uppercase text-[10px] mt-4 tracking-widest">Cancelar</button>
         </div>
     </div></div>
 
     <div id="modal-user-role" class="modal p-6"><div class="bg-white p-10 rounded-[2.5rem] w-full max-w-lg">
-        <h3 class="text-xl font-black mb-6">Habilitar Usuario</h3>
+        <h3 class="text-xl font-black mb-6">Asignar Perfil</h3>
         <form id="user-role-form" class="space-y-4">
-            <input type="text" id="u-uid" required class="input-inacap" placeholder="Pegar UID aquí">
-            <input type="email" id="u-email" required class="input-inacap" placeholder="Correo">
+            <input type="text" id="u-uid" required class="input-inacap" placeholder="UID del Usuario">
+            <input type="email" id="u-email" required class="input-inacap" placeholder="Correo electrónico">
             <select id="u-role" required class="input-inacap">
-                <option value="encargado">Encargado</option>
-                <option value="admin">Administrador</option>
+                <option value="encargado">Encargado (Básico)</option>
+                <option value="admin">Administrador (Total)</option>
             </select>
-            <button type="submit" class="w-full btn-inacap">Asignar Rol</button>
+            <button type="submit" class="w-full btn-inacap">Habilitar Perfil</button>
         </form>
     </div></div>
 
@@ -314,10 +351,10 @@
             <select id="l-product" required class="input-inacap"></select>
             <div class="grid grid-cols-2 gap-4">
                 <input type="number" id="l-qty" min="1" required class="input-inacap" placeholder="Cantidad">
-                <input type="text" id="l-rut" required class="input-inacap" placeholder="RUT">
+                <input type="text" id="l-rut" required class="input-inacap" placeholder="RUT Receptor">
             </div>
             <input type="text" id="l-name" required class="input-inacap" placeholder="Nombre completo">
-            <button type="submit" class="w-full btn-inacap">Confirmar</button>
+            <button type="submit" class="w-full btn-inacap">Confirmar Préstamo</button>
         </form>
     </div></div>
 
@@ -330,7 +367,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAyY6-4Qc8Yhvpv0JV0X46jVIHSfOPQ44c",
@@ -351,7 +388,39 @@
         const perPage = 15;
         let activeReturnId = null;
 
-        // --- AUTH LOGIC ---
+        // --- MOBILE MENU ---
+        window.toggleMobileMenu = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const icon = document.getElementById('menu-icon');
+            const isOpen = sidebar.classList.contains('mobile-open');
+            
+            if (isOpen) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+                icon.setAttribute('data-lucide', 'menu');
+            } else {
+                sidebar.classList.add('mobile-open');
+                overlay.classList.add('active');
+                icon.setAttribute('data-lucide', 'x');
+            }
+            lucide.createIcons();
+        };
+
+        // --- TAB SWITCHING ---
+        window.switchTab = (id) => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('mobile-open')) window.toggleMobileMenu();
+            
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('bg-slate-800', 'text-white');
+                if(b.dataset.tab === id) b.classList.add('bg-slate-800', 'text-white');
+            });
+        };
+
+        // --- AUTH ---
         document.getElementById('toggle-auth').onclick = () => {
             isRegisterMode = !isRegisterMode;
             document.getElementById('auth-title').textContent = isRegisterMode ? 'Crear Cuenta' : 'Iniciar Sesión';
@@ -362,7 +431,7 @@
             e.preventDefault();
             const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value;
             const btn = document.getElementById('btn-login-submit');
-            btn.disabled = true; btn.textContent = "VERIFICANDO...";
+            btn.disabled = true; btn.textContent = "CARGANDO...";
             try {
                 let userCredential;
                 if (isRegisterMode) userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -389,15 +458,19 @@
             if (user) {
                 const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid));
                 if (snap.exists()) { 
-                    userProfile = { uid: user.uid, email: user.email, ...snap.data() }; 
-                    renderApp(); 
-                } else { 
-                    signOut(auth); 
+                    userProfile = { uid: user.uid, email: user.email, ...snap.data() }; renderApp(); 
+                } else {
+                    document.getElementById('login-view').classList.remove('hidden');
+                    document.getElementById('login-error').classList.remove('hidden');
+                    document.getElementById('login-error-text').textContent = "Usuario registrado. Contacte al administrador para habilitar el acceso.";
+                    document.getElementById('uid-input').value = user.uid;
+                    document.getElementById('uid-helper').classList.remove('hidden');
                 }
             } else {
                 document.getElementById('auth-content').classList.add('hidden');
                 document.getElementById('sidebar').classList.add('hidden');
                 document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('mobile-menu-toggle').classList.add('hidden');
             }
         });
 
@@ -406,6 +479,7 @@
             document.getElementById('sidebar').classList.remove('hidden');
             document.getElementById('sidebar').classList.add('flex');
             document.getElementById('auth-content').classList.remove('hidden');
+            document.getElementById('mobile-menu-toggle').classList.remove('hidden');
             
             document.getElementById('display-user-role').textContent = userProfile.role === 'admin' ? 'Administrador' : 'Encargado';
             document.getElementById('display-user-email').textContent = userProfile.email;
@@ -416,7 +490,6 @@
             document.getElementById('admin-import-btn').classList.toggle('hidden', !isAdmin);
             document.getElementById('nav-users').classList.toggle('hidden', !isAdmin);
 
-            // Listeners
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'products'), (snap) => {
                 products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 updateLocationFilter();
@@ -442,7 +515,6 @@
             }); } catch(e) {}
         }
 
-        // --- INVENTORY ---
         function updateLocationFilter() {
             const select = document.getElementById('inventory-location-filter');
             const locations = [...new Set(products.map(p => p.location).filter(l => l))];
@@ -450,6 +522,7 @@
                 locations.map(l => `<option value="${l}">${l}</option>`).join('');
         }
 
+        // --- INVENTORY ---
         window.renderInventory = (page = 1) => {
             pInv = page;
             const search = document.getElementById('inventory-search').value.toLowerCase();
@@ -458,12 +531,12 @@
                 (p.name.toLowerCase().includes(search) || (p.code && p.code.toLowerCase().includes(search))) &&
                 (loc === 'all' || p.location === loc)
             );
-            const total = Math.ceil(filtered.length / perPage) || 1;
+            const totalPages = Math.ceil(filtered.length / perPage) || 1;
             const start = (page - 1) * perPage;
             const paginated = filtered.slice(start, start + perPage);
 
             document.getElementById('inventory-table').innerHTML = paginated.map(p => `
-                <tr class="hover:bg-slate-50 border-b">
+                <tr class="hover:bg-slate-50 border-b border-slate-100">
                     <td class="px-6 py-4">
                         <div class="font-bold text-slate-800">${p.name}</div>
                         <div class="text-[10px] text-slate-400 font-medium">${p.specs || 'N/A'}</div>
@@ -478,22 +551,22 @@
                         </div>
                     </td>
                     <td class="px-4 py-4 text-center">
-                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.available > 0 ? 'bg-inacap-red text-white' : 'bg-slate-200 text-slate-400'}">${p.available || 0}</span>
+                        <span class="px-3 py-1.5 rounded-xl text-xs font-black ${p.available > 0 ? 'bg-[#e30613] text-white' : 'bg-slate-200 text-slate-400'}">${p.available || 0}</span>
                     </td>
                     <td class="px-6 py-4 text-right flex justify-end gap-2">
                         ${userProfile.role === 'admin' ? `
-                            <button onclick="window.editProduct('${p.id}')" class="text-slate-400 hover:text-black"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="window.deleteProduct('${p.id}')" class="text-red-300 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="window.editProduct('${p.id}')" class="text-slate-400 hover:text-black transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="window.deleteProduct('${p.id}')" class="text-red-300 hover:text-red-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         ` : ''}
                     </td>
                 </tr>
             `).join('');
 
             document.getElementById('inventory-pagination').innerHTML = `
-                <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pInv} de ${total}</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pInv} de ${totalPages}</p>
                 <div class="flex gap-2">
                     <button onclick="window.renderInventory(${page - 1})" ${page === 1 ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">ANT</button>
-                    <button onclick="window.renderInventory(${page + 1})" ${page >= total ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">SIG</button>
+                    <button onclick="window.renderInventory(${page + 1})" ${page >= totalPages ? 'disabled' : ''} class="px-3 py-1.5 bg-white border rounded text-[10px] font-bold disabled:opacity-30">SIG</button>
                 </div>
             `;
             lucide.createIcons();
@@ -538,8 +611,8 @@
                         ` : '<span class="text-[9px] font-black text-slate-300 italic">PENDIENTE</span>'}
                     </td>
                     <td class="px-8 py-4 text-right flex justify-end gap-2">
-                        ${!l.isReturned ? `<button onclick="window.openReturnModal('${l.id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Retornar</button>` : `<span class="status-badge ${l.returnStatus === 'good' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} uppercase">${l.returnStatus === 'good' ? 'Bueno' : l.returnStatus === 'repair' ? 'Técnico' : 'Malo'}</span>`}
-                        ${userProfile.role === 'admin' ? `<button onclick="window.deleteLoan('${l.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                        ${!l.isReturned ? `<button onclick="window.openReturnModal('${l.id}')" class="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-slate-800 transition">Retornar</button>` : `<span class="status-badge ${l.returnStatus === 'good' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} uppercase">${l.returnStatus === 'good' ? 'Bueno' : l.returnStatus === 'repair' ? 'Técnico' : 'Malo'}</span>`}
+                        ${userProfile.role === 'admin' ? `<button onclick="window.deleteLoan('${l.id}')" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -561,19 +634,21 @@
             const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', l.productId);
             const pSnap = await getDoc(pRef);
             const pData = pSnap.data();
+            
             let update = {};
             if (state === 'good') update = { available: (pData.available||0) + l.qty, good: (pData.good||0) + l.qty };
             else if (state === 'repair') update = { repair: (pData.repair||0) + l.qty };
             else update = { bad: (pData.bad||0) + l.qty };
+
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', activeReturnId), { isReturned: true, returnDate: new Date().toISOString(), returnStatus: state });
             await updateDoc(pRef, update);
-            await logAction("Retorno", `Devuelto: ${l.qty}x ${l.productName} (${state})`);
+            await logAction("Retorno", `Devolución: ${l.qty}x ${l.productName} en estado ${state}`);
             window.closeModal('modal-return-state');
             showToast("Retorno registrado");
         };
 
         window.deleteLoan = async (id) => {
-            if (confirm("¿Eliminar registro? Esto no afecta el stock actual.")) {
+            if (confirm("¿Eliminar registro de préstamo?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'loans', id));
                 showToast("Registro eliminado");
             }
@@ -586,6 +661,7 @@
             const total = Math.ceil(sorted.length / perPage) || 1;
             const start = (page - 1) * perPage;
             const paginated = sorted.slice(start, start + perPage);
+
             document.getElementById('history-table').innerHTML = paginated.map(l => `
                 <tr class="border-b text-xs">
                     <td class="px-8 py-4">
@@ -596,6 +672,7 @@
                     <td class="px-8 py-4 font-medium text-slate-500">${l.detail || l.action}</td>
                 </tr>
             `).join('');
+
             document.getElementById('history-pagination').innerHTML = `
                 <p class="text-[10px] font-black text-slate-400 uppercase">Pág ${pHist} de ${total}</p>
                 <div class="flex gap-2">
@@ -618,10 +695,10 @@
         function renderUsers(list) {
             document.getElementById('users-table').innerHTML = list.map(u => `
                 <tr class="border-b">
-                    <td class="px-8 py-4 text-xs font-bold">${u.email}</td>
+                    <td class="px-8 py-4 text-xs font-bold text-slate-700">${u.email}</td>
                     <td class="px-6 py-4 text-center"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${u.role === 'admin' ? 'bg-black text-white' : 'bg-slate-100 text-slate-500'}">${u.role}</span></td>
                     <td class="px-8 py-4 text-right">
-                        ${u.id !== userProfile.uid ? `<button onclick="window.deleteUserRole('${u.id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                        ${u.id !== userProfile.uid ? `<button onclick="window.deleteUserRole('${u.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -632,7 +709,7 @@
             if (confirm("¿Revocar acceso?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid));
         };
 
-        // --- UTILS & FORM HANDLERS ---
+        // --- UTILS ---
         window.validateStockMath = () => {
             const total = parseInt(document.getElementById('p-total').value) || 0;
             const sum = (parseInt(document.getElementById('p-good').value) || 0) + (parseInt(document.getElementById('p-repair').value) || 0) + (parseInt(document.getElementById('p-bad').value) || 0);
@@ -694,15 +771,6 @@
             document.getElementById('stat-bad-stock').textContent = products.reduce((s,p) => s + (parseInt(p.bad) || 0), 0);
         }
 
-        window.switchTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('bg-slate-800', 'text-white');
-                if(b.dataset.tab === id) b.classList.add('bg-slate-800', 'text-white');
-            });
-        };
-
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
@@ -715,9 +783,7 @@
 
         window.copyUID = () => { 
             const inp = document.getElementById('uid-input');
-            inp.select(); 
-            document.execCommand('copy'); 
-            showToast("UID copiado"); 
+            inp.select(); document.execCommand('copy'); showToast("UID copiado"); 
         };
 
         window.handleCSVImport = async (e) => {
